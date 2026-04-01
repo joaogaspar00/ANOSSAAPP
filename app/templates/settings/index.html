@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Definições{% endblock %}
+{% block content %}
+<div class="page" style="max-width:580px">
+  <div class="page-header">
+    <h1 class="page-title">Definições</h1>
+  </div>
+
+  <!-- Household -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Agregado familiar</div>
+    <form method="POST" action="{{ url_for('settings.update_household') }}">
+      {{ household_form.hidden_tag() }}
+      <div style="display:flex;gap:.5rem;align-items:flex-end">
+        <div class="form-group" style="flex:1;margin-bottom:0">
+          <label class="form-label">{{ household_form.name.label.text }}</label>
+          {{ household_form.name(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-secondary">Guardar</button>
+      </div>
+    </form>
+    <hr>
+    <div>
+      <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.5rem;font-weight:500">Utilizadores</div>
+      {% for u in users %}
+      <div style="display:flex;align-items:center;gap:.75rem;padding:.4rem 0;border-bottom:1px solid var(--border)">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.8rem;flex-shrink:0">
+          {{ u.display_name[0].upper() }}
+        </div>
+        <div>
+          <div style="font-weight:500;font-size:.9rem">{{ u.display_name }}</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">@{{ u.username }}</div>
+        </div>
+        {% if u.id == current_user.id %}<span class="badge badge-green">Tu</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Profile -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">O teu perfil</div>
+    <form method="POST" action="{{ url_for('settings.update_profile') }}">
+      {{ profile_form.hidden_tag() }}
+      <div style="display:flex;gap:.5rem;align-items:flex-end">
+        <div class="form-group" style="flex:1;margin-bottom:0">
+          <label class="form-label">{{ profile_form.display_name.label.text }}</label>
+          {{ profile_form.display_name(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-secondary">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Change password -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Alterar palavra-passe</div>
+    <form method="POST" action="{{ url_for('settings.change_password') }}">
+      {{ password_form.hidden_tag() }}
+      <div class="form-group">
+        <label class="form-label">{{ password_form.current_password.label.text }}</label>
+        {{ password_form.current_password(class="form-control") }}
+        {% for e in password_form.current_password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ password_form.new_password.label.text }}</label>
+          {{ password_form.new_password(class="form-control") }}
+          {% for e in password_form.new_password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ password_form.confirm_password.label.text }}</label>
+          {{ password_form.confirm_password(class="form-control") }}
+          {% for e in password_form.confirm_password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-secondary">Alterar palavra-passe</button>
+    </form>
+  </div>
+
+  <!-- Price refresh -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Atualização de preços</div>
+    <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:.75rem">
+      Atualiza os preços dos ingredientes a partir do motor de preços dinamarquês (mock). Em produção pode ser ligado a APIs de supermercados.
+    </p>
+    <form method="POST" action="{{ url_for('settings.refresh_prices') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-secondary">↻ Atualizar preços</button>
+    </form>
+  </div>
+
+  <!-- Logout -->
+  <div class="card">
+    <div class="card__title">Sessão</div>
+    <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:.75rem">Sessão iniciada como <strong>{{ current_user.display_name }}</strong></p>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost">Sair</a>
+  </div>
+</div>
+{% endblock %}

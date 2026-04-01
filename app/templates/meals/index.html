@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Refeições{% endblock %}
+{% block head %}
+<style>
+  .meal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: .5rem;
+    overflow-x: auto;
+  }
+  .meal-col { min-width: 110px; }
+  .meal-col__header {
+    text-align: center;
+    font-size: .7rem; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase;
+    padding: .4rem 0; letter-spacing: .05em;
+  }
+  .meal-col__header.today-col { color: var(--accent); }
+  .meal-slot-label {
+    font-size: .65rem; font-weight: 600; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .06em;
+    margin: .5rem 0 .2rem;
+  }
+  .meal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: .5rem .6rem;
+    font-size: .78rem;
+    position: relative;
+  }
+  .meal-card.completed { opacity:.5; text-decoration:line-through; }
+  .meal-card__name { font-weight: 500; }
+  .meal-card__cost { font-size: .7rem; color: var(--text-muted); margin-top: .15rem; }
+  .add-meal-btn {
+    width: 100%; padding: .35rem;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: transparent; cursor: pointer;
+    font-size: .7rem; color: var(--text-muted);
+    transition: border-color .15s, color .15s;
+  }
+  .add-meal-btn:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Refeições</h1>
+    <a href="{{ url_for('meals.recipes') }}" class="btn btn-secondary">Receitas</a>
+  </div>
+
+  <!-- Weekly grid -->
+  {% set wd_names = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'] %}
+  <div class="meal-grid" style="margin-bottom:2rem">
+    {% for d in week_days %}
+    <div class="meal-col">
+      <div class="meal-col__header {% if d == today %}today-col{% endif %}">
+        {{ wd_names[loop.index0] }}<br>
+        <span style="font-size:.8rem;font-weight:{% if d == today %}700{% else %}400{% endif %}">{{ d.day }}</span>
+      </div>
+      {% for slot in slots %}
+        {% if grid[d][slot] %}
+          <div class="meal-slot-label">{{ slot_labels[slot] }}</div>
+          {% for mp in grid[d][slot] %}
+          <div class="meal-card {% if mp.completed %}completed{% endif %}">
+            <div class="meal-card__name">{{ mp.display_name }}</div>
+            {% if mp.recipe %}
+              <div class="meal-card__cost">~{{ "%.0f"|format(mp.recipe.cost_per_serving * mp.servings_planned) }} kr</div>
+            {% endif %}
+            <div style="display:flex;gap:.2rem;margin-top:.35rem">
+              {% if not mp.completed %}
+              <form method="POST" action="{{ url_for('meals.complete_plan', plan_id=mp.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-primary" style="padding:.2rem .5rem;font-size:.65rem">✓</button>
+              </form>
+              {% endif %}
+              <form method="POST" action="{{ url_for('meals.delete_plan', plan_id=mp.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-ghost" style="padding:.2rem .4rem;font-size:.65rem">✕</button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+
+      <!-- Quick add trigger -->
+      <button class="add-meal-btn" onclick="openModal('{{ d.isoformat() }}')" style="margin-top:.4rem">+ Adicionar</button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Add meal modal (simple) -->
+  <div id="meal-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;align-items:center;justify-content:center;padding:1rem">
+    <div class="card" style="width:100%;max-width:400px;position:relative">
+      <button onclick="closeModal()" style="position:absolute;top:.75rem;right:.75rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-muted)">✕</button>
+      <div class="card__title">Planear refeição</div>
+      <form method="POST" action="{{ url_for('meals.add_plan') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          {{ form.planned_date(class="form-control", type="date", id="modal_date") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Refeição</label>
+          {{ form.meal_slot(class="form-control") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Receita</label>
+          {{ form.recipe_id(class="form-control") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ou nome personalizado</label>
+          {{ form.custom_name(class="form-control", placeholder="ex. Pizza de takeaway") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Porções</label>
+          {{ form.servings_planned(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Planear</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  function openModal(date) {
+    document.getElementById('modal_date').value = date;
+    const m = document.getElementById('meal-modal');
+    m.style.display = 'flex';
+  }
+  function closeModal() {
+    document.getElementById('meal-modal').style.display = 'none';
+  }
+  document.getElementById('meal-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+{% endblock %}

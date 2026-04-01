@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Início{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Olá, {{ current_user.display_name.split()[0] }} 👋</h1>
+    <span style="font-size:.8rem;color:var(--text-muted)">{{ today.strftime('%A %d. %B') }}</span>
+  </div>
+
+  <!-- ── Stats row ── -->
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.25rem">
+    <div class="card" style="padding:1rem 1.25rem">
+      <div class="card__title">Despesas do mês</div>
+      <div style="font-size:1.5rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(monthly_total) }} kr</div>
+    </div>
+    <div class="card" style="padding:1rem 1.25rem">
+      <div class="card__title">Refeições da semana (est.)</div>
+      <div style="font-size:1.5rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(weekly_cost) }} kr</div>
+    </div>
+  </div>
+
+  <!-- ── Low inventory alerts ── -->
+  {% if low_inventory %}
+  <div class="card" style="border-left:3px solid var(--warn);margin-bottom:1rem">
+    <div class="card__title">⚠ Stock baixo</div>
+    <div class="tag-row">
+      {% for item in low_inventory %}
+        <span class="badge badge-orange">{{ item.name }} ({{ item.quantity }} {{ item.unit }})</span>
+      {% endfor %}
+    </div>
+    <div style="margin-top:.75rem">
+      <a href="{{ url_for('shopping.generate') }}" onclick="this.closest('div').querySelector('form').submit();return false;">
+        <form method="POST" action="{{ url_for('shopping.generate') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-secondary btn-sm">Gerar lista de compras</button>
+        </form>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── Today's meals ── -->
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Refeições de hoje</div>
+    {% if todays_meals %}
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:.5rem">
+        {% for mp in todays_meals %}
+        <li style="display:flex;align-items:center;gap:.75rem">
+          <span class="badge badge-green">{{ {'breakfast':'Pequeno-almoço','lunch':'Almoço','dinner':'Jantar','snack':'Lanche'}[mp.meal_slot] }}</span>
+          <span style="font-weight:500">{{ mp.display_name }}</span>
+          {% if mp.recipe %}
+            <span style="color:var(--text-muted);font-size:.8rem">{{ "%.0f"|format(mp.recipe.cost_per_serving * mp.servings_planned) }} kr</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="color:var(--text-muted);font-size:.875rem">Nenhuma refeição planeada para hoje.</p>
+      <a href="{{ url_for('meals.index') }}" class="btn btn-secondary btn-sm" style="margin-top:.75rem;display:inline-flex">Planear refeição</a>
+    {% endif %}
+  </div>
+
+  <!-- ── Upcoming tasks ── -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <div class="card__title" style="margin:0">Tarefas próximas</div>
+      <a href="{{ url_for('tasks.add') }}" class="btn btn-ghost btn-sm">+ Nova</a>
+    </div>
+    {% if upcoming_tasks %}
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:.5rem">
+        {% for task in upcoming_tasks %}
+        <li style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-bottom:1px solid var(--border)">
+          <form method="POST" action="{{ url_for('tasks.complete', task_id=task.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-icon" title="Marcar como concluída" style="width:28px;height:28px;border-radius:50%;flex-shrink:0">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </form>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:500;font-size:.9rem">{{ task.title }}</div>
+            {% if task.due_date %}
+              <div style="font-size:.75rem;color:{% if task.due_date < today %}var(--danger){% else %}var(--text-muted){% endif %}">
+                {{ task.due_date.strftime('%d. %b') }}
+                {% if task.due_date < today %}<span class="badge badge-red" style="margin-left:.3rem">Atrasada</span>{% endif %}
+              </div>
+            {% endif %}
+          </div>
+          {% if task.assigned_to %}<span class="badge badge-gray">{{ task.assigned_to.display_name }}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      <a href="{{ url_for('tasks.index') }}" style="font-size:.8rem;color:var(--accent);display:block;text-align:center;margin-top:.75rem">Ver todas as tarefas →</a>
+    {% else %}
+      <div class="empty" style="padding:1.5rem 0">
+        <p>Sem tarefas próximas 🎉</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Receitas{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Receitas</h1>
+    <div style="display:flex;gap:.5rem">
+      <a href="{{ url_for('meals.index') }}" class="btn btn-ghost">Plano de refeições</a>
+      <a href="{{ url_for('meals.add_recipe') }}" class="btn btn-primary">+ Receita</a>
+    </div>
+  </div>
+
+  {% if recipes %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem">
+      {% for r in recipes %}
+      <div class="card" style="display:flex;flex-direction:column;gap:.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+          <div>
+            <div style="font-weight:600;font-size:1rem">{{ r.name }}</div>
+            {% if r.category %}<span class="badge badge-green" style="margin-top:.3rem">{{ r.category }}</span>{% endif %}
+          </div>
+          <div style="display:flex;gap:.3rem;flex-shrink:0">
+            <a href="{{ url_for('meals.edit_recipe', recipe_id=r.id) }}" class="btn-icon btn-sm" title="Editar">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <form method="POST" action="{{ url_for('meals.delete_recipe', recipe_id=r.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-icon btn-sm" onclick="return confirm('Eliminar receita?')" title="Eliminar">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:1rem;font-size:.8rem;color:var(--text-muted)">
+          {% if r.prep_time_minutes %}
+            <span>⏱ {{ r.prep_time_minutes }} min</span>
+          {% endif %}
+          <span>👥 {{ r.servings }} porç.</span>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:.5rem;border-top:1px solid var(--border)">
+          <div>
+            <div style="font-size:.75rem;color:var(--text-muted)">Total</div>
+            <div style="font-weight:600;color:var(--accent)">{{ "%.0f"|format(r.total_cost) }} kr</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:.75rem;color:var(--text-muted)">Por porção</div>
+            <div style="font-weight:600">{{ "%.0f"|format(r.cost_per_serving) }} kr</div>
+          </div>
+          <a href="{{ url_for('meals.view_recipe', recipe_id=r.id) }}" class="btn btn-ghost btn-sm">Ver →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty card">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+      <p>Sem receitas ainda.</p>
+      <a href="{{ url_for('meals.add_recipe') }}" class="btn btn-primary" style="margin-top:1rem;display:inline-flex">Adicionar primeira receita</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

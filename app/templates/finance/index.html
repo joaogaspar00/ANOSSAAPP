@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Finanças{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Finanças</h1>
+    <a href="{{ url_for('finance.add') }}" class="btn btn-primary">+ Despesa</a>
+  </div>
+
+  <!-- Month selector -->
+  <div style="display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center">
+    {% set months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
+    {% for m in range(1, 13) %}
+      <a href="{{ url_for('finance.index', month=m, year=year) }}"
+         class="btn btn-sm {% if m == month %}btn-primary{% else %}btn-ghost{% endif %}">
+        {{ months[m-1] }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.25rem">
+    <div class="card" style="padding:1rem 1.25rem">
+      <div class="card__title">Total</div>
+      <div style="font-size:1.75rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(total) }} kr</div>
+    </div>
+    <div class="card" style="padding:1rem 1.25rem">
+      <div class="card__title">Categorias</div>
+      <div style="font-size:1.75rem;font-weight:600">{{ by_category|length }}</div>
+    </div>
+  </div>
+
+  <!-- By category -->
+  {% if by_category %}
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Distribuição</div>
+    {% for cat, amt in by_category|dictsort(by='value', reverse=true) %}
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;margin-bottom:.2rem">
+          <span style="font-size:.85rem;font-weight:500">{{ cat }}</span>
+          <span style="font-size:.85rem;color:var(--text-muted)">{{ "%.0f"|format(amt) }} kr</span>
+        </div>
+        <div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:{{ (amt / total * 100)|round|int if total > 0 else 0 }}%;background:var(--accent);border-radius:99px"></div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Expenses list -->
+  <div class="card">
+    <div class="card__title">Despesas — {{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][month-1] }} {{ year }}</div>
+    {% if expenses %}
+      <ul style="list-style:none">
+        {% for e in expenses %}
+        <li style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-weight:500;font-size:.9rem">{{ e.note or e.category }}</span>
+              <span style="font-weight:600;color:var(--accent)">{{ "%.0f"|format(e.amount) }} kr</span>
+            </div>
+            <div style="display:flex;gap:.5rem;margin-top:.2rem">
+              <span class="badge badge-gray">{{ e.category }}</span>
+              <span style="font-size:.75rem;color:var(--text-muted)">{{ e.date.strftime('%d. %b') }}</span>
+            </div>
+          </div>
+          <form method="POST" action="{{ url_for('finance.delete', expense_id=e.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-icon btn-sm" onclick="return confirm('Eliminar despesa?')" title="Eliminar">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            </button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty"><p>Sem despesas este mês.</p></div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

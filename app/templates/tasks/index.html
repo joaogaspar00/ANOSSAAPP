@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Tarefas{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Tarefas</h1>
+    <a href="{{ url_for('tasks.add') }}" class="btn btn-primary">+ Tarefa</a>
+  </div>
+
+  <!-- Filter tabs -->
+  <div style="display:flex;gap:.4rem;margin-bottom:1.25rem">
+    <a href="{{ url_for('tasks.index', status='pending') }}"
+       class="btn btn-sm {% if filter_status == 'pending' %}btn-primary{% else %}btn-ghost{% endif %}">Activas</a>
+    <a href="{{ url_for('tasks.index', status='all') }}"
+       class="btn btn-sm {% if filter_status == 'all' %}btn-primary{% else %}btn-ghost{% endif %}">Todas</a>
+    <a href="{{ url_for('tasks.index', status='done') }}"
+       class="btn btn-sm {% if filter_status == 'done' %}btn-primary{% else %}btn-ghost{% endif %}">Concluídas</a>
+  </div>
+
+  {% if tasks %}
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.5rem">
+      {% for task in tasks %}
+      <li class="card" style="padding:.9rem 1.1rem">
+        <div style="display:flex;align-items:flex-start;gap:.75rem">
+          {% if not task.completed %}
+          <form method="POST" action="{{ url_for('tasks.complete', task_id=task.id) }}" style="flex-shrink:0;margin-top:.1rem">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-icon" style="width:28px;height:28px;border-radius:50%" title="Marcar como concluída">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </form>
+          {% else %}
+          <span style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--success)">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </span>
+          {% endif %}
+
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+              <span style="font-weight:500;font-size:.9rem{% if task.completed %};color:var(--text-muted);text-decoration:line-through{% endif %}">
+                {{ task.title }}
+              </span>
+              <div style="display:flex;gap:.35rem;flex-shrink:0">
+                <a href="{{ url_for('tasks.edit', task_id=task.id) }}" class="btn-icon btn-sm" title="Editar">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </a>
+                <form method="POST" action="{{ url_for('tasks.delete', task_id=task.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn-icon btn-sm" onclick="return confirm('Eliminar tarefa?')" title="Eliminar">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem">
+              {% if task.due_date %}
+                <span class="badge {% if not task.completed and task.due_date < today %}badge-red{% else %}badge-gray{% endif %}">
+                  {{ task.due_date.strftime('%d. %b %Y') }}
+                  {% if not task.completed and task.due_date < today %} · Atrasada{% endif %}
+                </span>
+              {% endif %}
+              {% if task.assigned_to %}
+                <span class="badge badge-green">{{ task.assigned_to.display_name }}</span>
+              {% endif %}
+              {% if task.recurrence_rule and task.recurrence_rule.rule_type != 'none' %}
+                <span class="badge badge-gray">
+                  🔁 {{ {'daily':'Diário','weekly':'Semanal','monthly':'Mensal','every_x_days': 'A cada '+task.recurrence_rule.interval_days|string+' dias'}[task.recurrence_rule.rule_type] }}
+                </span>
+              {% endif %}
+            </div>
+            {% if task.description %}
+              <p style="font-size:.8rem;color:var(--text-muted);margin-top:.35rem">{{ task.description }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty card">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <p>Sem tarefas — muito bem!</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

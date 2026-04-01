@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ recipe.name }}{% endblock %}
+{% block content %}
+<div class="page" style="max-width:640px">
+  <div class="page-header">
+    <h1 class="page-title">{{ recipe.name }}</h1>
+    <div style="display:flex;gap:.5rem">
+      <a href="{{ url_for('meals.edit_recipe', recipe_id=recipe.id) }}" class="btn btn-secondary">Editar</a>
+      <a href="{{ url_for('meals.recipes') }}" class="btn btn-ghost">Voltar</a>
+    </div>
+  </div>
+
+  <!-- Meta -->
+  <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem">
+    {% if recipe.category %}<span class="badge badge-green">{{ recipe.category }}</span>{% endif %}
+    <span class="badge badge-gray">👥 {{ recipe.servings }} porções</span>
+    {% if recipe.prep_time_minutes %}<span class="badge badge-gray">⏱ {{ recipe.prep_time_minutes }} min</span>{% endif %}
+    <span class="badge badge-gray">💰 {{ "%.0f"|format(recipe.total_cost) }} kr total</span>
+    <span class="badge badge-gray">{{ "%.0f"|format(recipe.cost_per_serving) }} kr/port.</span>
+  </div>
+
+  <!-- Ingredients -->
+  {% if recipe.recipe_ingredients %}
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Ingredientes</div>
+    <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border)">
+          <th style="text-align:left;padding:.4rem 0;font-weight:600;color:var(--text-muted);font-size:.7rem;text-transform:uppercase">Ingrediente</th>
+          <th style="text-align:right;padding:.4rem 0;font-weight:600;color:var(--text-muted);font-size:.7rem;text-transform:uppercase">Quantidade</th>
+          <th style="text-align:right;padding:.4rem 0;font-weight:600;color:var(--text-muted);font-size:.7rem;text-transform:uppercase">Preço</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ri in recipe.recipe_ingredients %}
+        <tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:.5rem 0">{{ ri.ingredient.name }}</td>
+          <td style="text-align:right;padding:.5rem 0;color:var(--text-muted)">{{ ri.quantity }} {{ ri.unit }}</td>
+          <td style="text-align:right;padding:.5rem 0;font-weight:500">
+            {% if ri.line_cost > 0 %}{{ "%.1f"|format(ri.line_cost) }} kr{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+        <tr style="font-weight:600">
+          <td style="padding:.6rem 0" colspan="2">Total (kr)</td>
+          <td style="text-align:right;color:var(--accent)">{{ "%.0f"|format(recipe.total_cost) }} kr</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Instructions -->
+  {% if recipe.instructions %}
+  <div class="card">
+    <div class="card__title">Modo de preparação</div>
+    <div style="font-size:.9rem;line-height:1.7;white-space:pre-wrap;color:var(--text)">{{ recipe.instructions }}</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

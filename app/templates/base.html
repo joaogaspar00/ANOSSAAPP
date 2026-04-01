@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ANOSSA{% endblock %} — A Nossa Casa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --bg: #f7f5f2;
+      --surface: #ffffff;
+      --surface2: #f0ede8;
+      --border: #e5e0d8;
+      --text: #1a1816;
+      --text-muted: #7a736a;
+      --accent: #2d5a3d;
+      --accent-light: #e8f0eb;
+      --danger: #c0392b;
+      --danger-light: #fdecea;
+      --warn: #e67e22;
+      --warn-light: #fef3e2;
+      --success: #27ae60;
+      --success-light: #eafaf1;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+      --shadow-lg: 0 4px 20px rgba(0,0,0,.08);
+      --nav-h: 60px;
+      --font: 'DM Sans', sans-serif;
+      --font-display: 'DM Serif Display', serif;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 80px; /* bottom nav clearance on mobile */
+    }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+
+    /* ── Top bar (desktop) ── */
+    .topbar {
+      display: none;
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      padding: 0 2rem;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+    .topbar__brand {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+    .topbar__nav { display: flex; gap: .25rem; align-items: center; }
+    .topbar__nav a {
+      padding: .5rem .85rem;
+      border-radius: var(--radius-sm);
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: background .15s, color .15s;
+    }
+    .topbar__nav a:hover { background: var(--surface2); color: var(--text); }
+    .topbar__nav a.active { background: var(--accent-light); color: var(--accent); }
+    .topbar__user {
+      font-size: .8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .topbar__user a {
+      color: var(--accent);
+      font-weight: 500;
+      margin-left: .5rem;
+    }
+
+    /* ── Bottom nav (mobile) ── */
+    .bottomnav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      z-index: 100;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 .5rem;
+    }
+    .bottomnav a {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: .5rem .6rem;
+      border-radius: var(--radius-sm);
+      font-size: .65rem; font-weight: 500;
+      color: var(--text-muted);
+      transition: color .15s;
+    }
+    .bottomnav a.active { color: var(--accent); }
+    .bottomnav a svg { width: 22px; height: 22px; }
+
+    /* ── Page container ── */
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem;
+    }
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      line-height: 1.2;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 1rem; }
+    .card__title {
+      font-size: .7rem; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: .75rem;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: .4rem; padding: .6rem 1.2rem;
+      border: none; border-radius: var(--radius-sm);
+      font-size: .875rem; font-weight: 500;
+      transition: opacity .15s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { opacity: .9; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { opacity: .9; }
+    .btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+    .btn-sm { padding: .4rem .8rem; font-size: .8rem; }
+    .btn-icon {
+      width: 36px; height: 36px; padding: 0;
+      border-radius: var(--radius-sm);
+      background: var(--surface2); color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-icon:hover { background: var(--border); color: var(--text); }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-size: .8rem; font-weight: 500; margin-bottom: .4rem; color: var(--text-muted); }
+    .form-control {
+      width: 100%; padding: .7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--text);
+      font-size: .9rem;
+      transition: border-color .15s;
+      outline: none;
+    }
+    .form-control:focus { border-color: var(--accent); }
+    textarea.form-control { min-height: 100px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-error { font-size: .78rem; color: var(--danger); margin-top: .3rem; }
+
+    /* ── Alerts / Flash ── */
+    .flash-list { list-style: none; margin-bottom: 1rem; display: flex; flex-direction: column; gap: .5rem; }
+    .flash {
+      padding: .75rem 1rem; border-radius: var(--radius-sm);
+      font-size: .875rem; border-left: 3px solid transparent;
+    }
+    .flash-success { background: var(--success-light); border-color: var(--success); color: #1a5c38; }
+    .flash-danger  { background: var(--danger-light);  border-color: var(--danger);  color: #7b1a14; }
+    .flash-info    { background: var(--accent-light);  border-color: var(--accent);  color: var(--accent); }
+    .flash-warning { background: var(--warn-light);    border-color: var(--warn);    color: #7a4510; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block; padding: .2rem .55rem;
+      border-radius: 99px; font-size: .7rem; font-weight: 600;
+      line-height: 1;
+    }
+    .badge-green  { background: var(--accent-light); color: var(--accent); }
+    .badge-red    { background: var(--danger-light); color: var(--danger); }
+    .badge-orange { background: var(--warn-light); color: var(--warn); }
+    .badge-gray   { background: var(--surface2); color: var(--text-muted); }
+
+    /* ── Divider ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+    /* ── Empty state ── */
+    .empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+    .empty svg { width: 48px; height: 48px; margin-bottom: .75rem; opacity: .3; }
+    .empty p { font-size: .9rem; }
+
+    /* ── Responsive: show topbar on desktop ── */
+    @media (min-width: 700px) {
+      body { padding-bottom: 0; padding-top: var(--nav-h); }
+      .topbar { display: flex; }
+      .bottomnav { display: none; }
+      .page { padding: 2rem 1.5rem; }
+      .page-title { font-size: 2rem; }
+    }
+
+    /* ── Tag row ── */
+    .tag-row { display: flex; flex-wrap: wrap; gap: .4rem; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Desktop top nav ── -->
+<nav class="topbar">
+  <span class="topbar__brand">{{ current_user.household.name if current_user.is_authenticated else 'ANOSSA' }}</span>
+  <div class="topbar__nav">
+    <a href="{{ url_for('dashboard.index') }}" {% if request.endpoint == 'dashboard.index' %}class="active"{% endif %}>Início</a>
+    <a href="{{ url_for('calendar.index') }}" {% if request.blueprint == 'calendar' %}class="active"{% endif %}>Calendário</a>
+    <a href="{{ url_for('meals.index') }}" {% if request.blueprint == 'meals' %}class="active"{% endif %}>Refeições</a>
+    <a href="{{ url_for('shopping.index') }}" {% if request.blueprint == 'shopping' %}class="active"{% endif %}>Compras</a>
+    <a href="{{ url_for('inventory.index') }}" {% if request.blueprint == 'inventory' %}class="active"{% endif %}>Despensa</a>
+    <a href="{{ url_for('tasks.index') }}" {% if request.blueprint == 'tasks' %}class="active"{% endif %}>Tarefas</a>
+    <a href="{{ url_for('finance.index') }}" {% if request.blueprint == 'finance' %}class="active"{% endif %}>Finanças</a>
+  </div>
+  <div class="topbar__user">
+    {% if current_user.is_authenticated %}
+      {{ current_user.display_name }}
+      <a href="{{ url_for('settings.index') }}">Definições</a>
+      <a href="{{ url_for('auth.logout') }}">Sair</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ── Mobile bottom nav ── -->
+<nav class="bottomnav">
+  <a href="{{ url_for('dashboard.index') }}" {% if request.endpoint == 'dashboard.index' %}class="active"{% endif %}>
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    Início
+  </a>
+  <a href="{{ url_for('calendar.index') }}" {% if request.blueprint == 'calendar' %}class="active"{% endif %}>
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Calendário
+  </a>
+  <a href="{{ url_for('meals.index') }}" {% if request.blueprint == 'meals' %}class="active"{% endif %}>
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3"/></svg>
+    Refeições
+  </a>
+  <a href="{{ url_for('shopping.index') }}" {% if request.blueprint == 'shopping' %}class="active"{% endif %}>
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+    Compras
+  </a>
+  <a href="{{ url_for('tasks.index') }}" {% if request.blueprint == 'tasks' %}class="active"{% endif %}>
+    <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Tarefas
+  </a>
+</nav>
+
+<!-- ── Flash messages ── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="position:fixed;top:{% if request.endpoint != 'auth.login' %}70px{% else %}1rem{% endif %};right:1rem;z-index:200;max-width:360px;width:calc(100% - 2rem)">
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash flash-{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+</body>
+</html>
