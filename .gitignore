@@ -5,8 +5,6 @@ __pycache__/
 instance/
 *.db
 *.sqlite
-.venv/
-venv/
 dist/
 build/
 *.egg-info/
