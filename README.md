@@ -1,148 +1,160 @@
-# ANOSSAAPP — Husstandsstyring
+# ❤️ ANOSSAAPP — A gestão do casal, simplificada
 
-Et privat web-baseret husstandsstyringssystem til to brugere.
-
-## Funktioner
-
-| Modul | Funktioner |
-|---|---|
-| 🏠 Dashboard | Dagsoversigt: måltider, opgaver, advarsler, forbrug |
-| 💰 Økonomi | Udgiftsregistrering, kategorier, månedstrend |
-| ✅ Opgaver | Opret/rediger/slet, tildeling, gentagelse (daglig/ugentlig/månedlig) |
-| 📅 Kalender | Ugevisning med opgaver, måltider og begivenheder |
-| 🍽 Måltider | Ugentlig madplan + opskriftsdatabase med prisberegning |
-| 📦 Lager | Køleskab/spisekammer med minimumsadvarsler |
-| 🛒 Indkøb | Auto-genereret liste fra madplan + lager |
-| ⚙️ Indstillinger | Profil, adgangskode, husstandsnavn, prismotor |
-
-## Teknisk stack
-
-- **Backend:** Python 3, Flask, SQLAlchemy, Flask-Login, Flask-Bcrypt
-- **Database:** SQLite (udvikling) / PostgreSQL (produktion)
-- **Frontend:** Jinja2, TailwindCSS-inspireret custom CSS, minimalt JS
-- **Sikkerhed:** CSRF beskyttelse, bcrypt passwords, sikre sessions
+Uma aplicação web Django para casais gerirem juntos finanças, tarefas, refeições, atividades, objetivos e calendário.
 
 ---
 
-## Hurtig start
+## Módulos
 
-### 1. Klon og opret virtuelt miljø
+| Módulo | Funcionalidades |
+|---|---|
+| 🏠 **Dashboard** | Resumo diário: tarefas, eventos, refeições, saldo |
+| 💰 **Finanças** | Despesas partilhadas, saldo automático, exportar CSV |
+| ✅ **Tarefas** | Kanban, prioridades, recorrência automática |
+| 🍽️ **Refeições** | Planeamento semanal, inventário, lista de compras automática |
+| 🎯 **Atividades** | Wishlist do casal, avaliações, historial |
+| 🏆 **Objetivos** | Metas financeiras e pessoais com barra de progresso |
+| 📅 **Calendário** | Vista mensal, eventos partilhados e pessoais |
+| ⚙️ **Definições** | Perfil, convite para parceiro, moeda, household |
+
+---
+
+## Stack técnica
+
+- **Framework:** Django 6.x
+- **Base de dados:** SQLite (dev) / PostgreSQL (produção)
+- **Frontend:** HTML + CSS puro, sem frameworks JS pesados
+- **Autenticação:** Django Auth com UserProfile estendido
+- **Ficheiros estáticos:** WhiteNoise
+
+---
+
+## Início rápido
+
+### 1. Criar ambiente virtual
 
 ```bash
-git clone <repo-url> anossaapp
-cd anossaapp
-python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate       # Windows
+source .venv/bin/activate    # Mac/Linux
+```
+
+### 2. Instalar dependências
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Konfigurer miljøvariabler
+### 3. Configurar variáveis de ambiente
 
-```bash
-cp .env.example .env
-# Rediger .env — skift SECRET_KEY til noget hemmeligt!
+Edita o ficheiro `.env` (já existe no projeto):
+
+```env
+SECRET_KEY=coloca-aqui-uma-chave-secreta-longa-e-aleatoria
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# SQLite (padrão para desenvolvimento):
+DB_ENGINE=sqlite
+
+# PostgreSQL (para produção):
+# DB_ENGINE=postgresql
+# DB_NAME=anossaapp
+# DB_USER=postgres
+# DB_PASSWORD=a_tua_password
+# DB_HOST=localhost
+# DB_PORT=5432
 ```
 
-### 3. Start appen
+### 4. Aplicar migrações
 
 ```bash
-python run.py
+python manage.py migrate
 ```
 
-Åbn `http://localhost:5000` i din browser.
+### 5. Criar superutilizador (opcional, para acesso ao admin)
 
-### 4. Log ind
+```bash
+python manage.py createsuperuser
+```
 
-Standardbrugere oprettes automatisk ved første start:
+### 6. Iniciar o servidor
 
-| Brugernavn | Adgangskode |
-|---|---|
-| `user1` | `changeme1` |
-| `user2` | `changeme2` |
+```bash
+python manage.py runserver
+```
 
-**Skift adgangskoder med det samme under Indstillinger → Skift adgangskode!**
+Abre `http://localhost:8000` no teu browser.
 
 ---
 
-## Projektstruktur
+## Fluxo de utilização
+
+1. **Utilizador A** regista-se em `/registar/` → cria o Household (nome do casal + moeda)
+2. Em **Definições** (`/definicoes/`), copia o link de convite
+3. **Utilizador B** abre o link de convite → regista-se → fica no mesmo Household
+4. A partir daí, ambos veem e editam todos os dados partilhados
+
+---
+
+## Mudar para PostgreSQL
+
+1. Edita `.env`:
+   ```env
+   DB_ENGINE=postgresql
+   DB_NAME=anossaapp
+   DB_USER=postgres
+   DB_PASSWORD=a_tua_password
+   DB_HOST=localhost
+   DB_PORT=5432
+   ```
+2. Cria a base de dados: `createdb anossaapp`
+3. Aplica migrações: `python manage.py migrate`
+
+---
+
+## Produção (gunicorn)
+
+```bash
+gunicorn anossaapp.wsgi:application --bind 0.0.0.0:8000 --workers 2
+```
+
+Muda no `.env`:
+```env
+DEBUG=False
+SECRET_KEY=chave-muito-secreta-e-longa
+ALLOWED_HOSTS=o-teu-dominio.com
+```
+
+---
+
+## Estrutura do projeto
 
 ```
 anossaapp/
-├── app/
-│   ├── __init__.py              # App factory
-│   ├── extensions.py            # Flask extensions (db, login, bcrypt, csrf)
-│   ├── models.py                # Alle SQLAlchemy modeller
-│   ├── blueprints/
-│   │   ├── auth/                # Login / logout
-│   │   ├── dashboard/           # Forside
-│   │   ├── finance/             # Økonomi
-│   │   ├── tasks/               # Opgaver
-│   │   ├── calendar/            # Kalender
-│   │   ├── meals/               # Måltider + opskrifter
-│   │   ├── inventory/           # Lager
-│   │   ├── shopping/            # Indkøbsliste
-│   │   └── settings/            # Indstillinger
-│   ├── services/
-│   │   ├── price_service.py     # Dansk prismotor (mock + interface)
-│   │   ├── shopping_service.py  # Indkøbslistegenerator
-│   │   └── task_service.py      # Opgavegentagelse + kalendersynk
-│   └── templates/               # Jinja2 templates
-├── config.py                    # Dev/prod konfiguration
-├── run.py                       # Udviklingsserver
-├── Procfile                     # Gunicorn (produktion)
-└── requirements.txt
+├── manage.py
+├── .env                    # Variáveis de ambiente (NÃO commitar em produção)
+├── requirements.txt
+├── anossaapp/              # Configuração Django
+│   ├── settings.py
+│   └── urls.py
+├── core/                   # User, Household, autenticação, onboarding
+├── financas/               # Despesas e liquidações
+├── tarefas/                # Tarefas com kanban e recorrência
+├── refeicoes/              # Refeições, inventário, lista de compras
+├── atividades/             # Wishlist e atividades do casal
+├── objetivos/              # Objetivos partilhados
+├── calendario/             # Calendário mensal
+├── static/css/main.css     # Estilos CSS
+└── templates/              # Templates HTML
 ```
 
 ---
 
-## Produktion (PostgreSQL + gunicorn)
+## Segurança
 
-```bash
-# Sæt miljøvariabler
-export FLASK_ENV=production
-export SECRET_KEY="meget-hemmeligt-langt-random-nøgle"
-export DATABASE_URL="postgresql://user:pass@host:5432/anossa"
-
-# Kør med gunicorn
-gunicorn "run:app" --bind 0.0.0.0:8000 --workers 2
-```
-
----
-
-## Prismotor — udvidelse
-
-For at tilslutte en rigtig dansk supermarked-API, opret en ny klasse i `app/services/price_service.py`:
-
-```python
-class SallingGroupPriceService(AbstractPriceService):
-    def get_price(self, ingredient_name: str) -> float | None:
-        # Kald Salling Group API her
-        ...
-```
-
-Skift derefter i `get_price_service()`:
-```python
-_service_instance = SallingGroupPriceService()
-```
-
-Ingen anden kode skal ændres.
-
----
-
-## Sikkerhedsnoter
-
-- Alle ruter kræver login (`@login_required`)
-- Passwords hashes med bcrypt (aldrig klartekst)
-- CSRF-beskyttelse på alle formularer
-- Session cookies er httpOnly + SameSite=Lax
-- `SESSION_COOKIE_SECURE = True` aktiveres automatisk i production config
-- Husholdningsdata er isoleret — brugere ser kun deres eget husstand
-
----
-
-## Nulstil database (udvikling)
-
-```bash
-rm instance/anossa.db
-python run.py   # Opretter frisk DB med standardbrugere
-```
+- Todos os dados filtrados por Household — utilizadores não veem dados de outros casais
+- Passwords com hash Django (PBKDF2)
+- CSRF em todos os formulários
+- Middleware de segurança Django ativo
+- Token de convite expira automaticamente quando o Household atinge 2 membros

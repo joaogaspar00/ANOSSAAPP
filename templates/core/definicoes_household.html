@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block titulo %}Definições do Casal{% endblock %}
+
+{% block conteudo %}
+<div class="page-header">
+  <h1 class="page-title">⚙️ Definições do Casal</h1>
+</div>
+
+<div style="max-width: 700px; margin: 0 auto;">
+  <div class="card mb-2">
+    <div class="card-header">
+      <span class="card-titulo">Informações do casal</span>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="guardar">
+      <div class="form-group">
+        <label class="form-label">{{ form.nome.label }}</label>
+        {{ form.nome }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ form.moeda.label }}</label>
+        {{ form.moeda }}
+      </div>
+      <button type="submit" class="btn btn-primario">Guardar</button>
+    </form>
+  </div>
+
+  <div class="card mb-2">
+    <div class="card-header">
+      <span class="card-titulo">💌 Link de Convite</span>
+    </div>
+    {% if household.convite_ativo %}
+    <p class="text-sm text-suave mb-1">Partilha este link com o teu parceiro:</p>
+    <div class="convite-url-box" id="convite-url">{{ convite_url }}</div>
+    <div class="d-flex gap-1 mt-1">
+      <button class="btn btn-primario btn-sm" onclick="copiarTexto('{{ convite_url }}')">📋 Copiar link</button>
+      <form method="post" style="display: inline;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="desativar_convite">
+        <button type="submit" class="btn btn-secundario btn-sm">Desativar convite</button>
+      </form>
+    </div>
+    {% else %}
+    <p class="text-sm text-suave mb-1">O convite está desativado.</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="novo_convite">
+      <button type="submit" class="btn btn-primario btn-sm">Gerar novo link</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-titulo">👥 Membros</span>
+    </div>
+    {% for membro in household.membros %}
+    <div class="d-flex align-center gap-2" style="padding: 0.5rem 0; border-bottom: 1px solid var(--cor-borda);">
+      <div class="avatar" style="background: {{ membro.profile.cor_perfil }}">
+        {% if membro.profile.avatar %}
+          <img src="{{ membro.profile.avatar.url }}" alt="{{ membro.profile.nome_display }}">
+        {% else %}
+          {{ membro.profile.iniciais }}
+        {% endif %}
+      </div>
+      <div>
+        <p class="font-medium text-sm">{{ membro.profile.nome_display }}</p>
+        <p class="text-xs text-suave">@{{ membro.username }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  input[type="text"], select {
+    width: 100%;
+    padding: 0.7rem 0.875rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-sm);
+    font-size: 0.875rem;
+    font-family: var(--fonte);
+    margin-top: 0.25rem;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--cor-primaria); box-shadow: 0 0 0 3px rgba(92,107,192,0.15); }
+</style>
+{% endblock %}

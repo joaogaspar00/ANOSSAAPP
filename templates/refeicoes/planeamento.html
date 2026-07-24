@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}Refeições{% endblock %}
+
+{% block conteudo %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🍽️ Planeamento de Refeições</h1>
+    <p class="page-subtitle">Semana atual</p>
+  </div>
+  <div class="d-flex gap-1">
+    <a href="{% url 'lista_compras' %}" class="btn btn-secundario">🛒 Compras</a>
+    <a href="{% url 'inventario' %}" class="btn btn-secundario">📦 Inventário</a>
+    <a href="{% url 'criar_refeicao' %}" class="btn btn-primario">+ Refeição</a>
+  </div>
+</div>
+
+<div class="plano-semana">
+  {% for dia, refeicoes_dia in plano %}
+  <div class="plano-dia {% if dia == hoje %}hoje{% endif %}">
+    <div class="plano-dia-header">
+      {{ dia|date:"D" }}<br>
+      <span style="font-size: 1.1rem; color: var(--cor-texto); font-weight: 700;">{{ dia|date:"j" }}</span>
+    </div>
+    {% for r in refeicoes_dia %}
+    <div class="refeicao-item">
+      <div class="d-flex align-center justify-between">
+        <span class="font-medium" style="font-size: 0.82rem;">{{ r.nome }}</span>
+        <div class="d-flex gap-1">
+          <a href="{% url 'editar_refeicao' r.pk %}" style="font-size: 0.75rem; color: var(--cor-texto-suave);" title="Editar">✏️</a>
+          <a href="{% url 'eliminar_refeicao' r.pk %}" style="font-size: 0.75rem; color: #EF4444;" title="Eliminar">🗑️</a>
+        </div>
+      </div>
+      <span class="text-xs text-suave">{{ r.get_tipo_display }}</span>
+      {% if r.created_by != request.user %}
+      <div class="avatar avatar-sm" style="background: {{ r.created_by.profile.cor_perfil }}; margin-top: 0.25rem;" title="{{ r.created_by.profile.nome_display }}">
+        {{ r.created_by.profile.iniciais }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <a href="{% url 'criar_refeicao' %}?data={{ dia|date:'Y-m-d' }}" class="btn btn-outline btn-sm w-100" style="margin-top: 0.5rem; font-size: 0.75rem;">+ Adicionar</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

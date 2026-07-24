@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block titulo %}{% trans "Atividades" %}{% endblock %}
+
+{% block conteudo %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🎯 {% trans "Atividades" %}</h1>
+    <p class="page-subtitle">{% trans "Wishlist do casal, avaliações, historial" %}</p>
+  </div>
+  <a href="{% url 'criar_atividade' %}" class="btn btn-primario">+ {% trans "Nova Atividade" %}</a>
+</div>
+
+<div class="filtros">
+  <a href="?" class="filtro-btn {% if not filtro_estado and not filtro_tipo %}ativo{% endif %}">{% trans "Todas" %}</a>
+  <a href="?estado=wishlist" class="filtro-btn {% if filtro_estado == 'wishlist' %}ativo{% endif %}">💭 {% trans "Wishlist" %}</a>
+  <a href="?estado=planeado" class="filtro-btn {% if filtro_estado == 'planeado' %}ativo{% endif %}">📅 {% trans "Planeado" %}</a>
+  <a href="?estado=feito" class="filtro-btn {% if filtro_estado == 'feito' %}ativo{% endif %}">✅ {% trans "Feito" %}</a>
+</div>
+<div class="filtros" style="margin-top: 0.25rem;">
+  {% for val, label in tipos %}
+  <a href="?tipo={{ val }}&estado={{ filtro_estado }}" class="filtro-btn {% if filtro_tipo == val %}ativo{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if atividades %}
+{% for atividade in atividades %}
+<div class="atividade-card">
+  <div class="atividade-tipo-icone">
+    {% if atividade.tipo == 'restaurante' %}🍽️
+    {% elif atividade.tipo == 'museu' %}🎨
+    {% elif atividade.tipo == 'concerto' %}🎵
+    {% elif atividade.tipo == 'viagem' %}✈️
+    {% elif atividade.tipo == 'cinema' %}🎬
+    {% elif atividade.tipo == 'desporto' %}⚽
+    {% elif atividade.tipo == 'natureza' %}🌿
+    {% else %}🎯{% endif %}
+  </div>
+  <div style="flex: 1; min-width: 0;">
+    <div class="d-flex align-center justify-between" style="flex-wrap: wrap; gap: 0.5rem;">
+      <p class="font-medium">{{ atividade.nome }}</p>
+      <span class="badge badge-{{ atividade.estado }}">{{ atividade.get_estado_display }}</span>
+    </div>
+    <p class="text-xs text-suave">{{ atividade.get_tipo_display }}{% if atividade.localizacao %} · 📍 {{ atividade.localizacao }}{% endif %}{% if atividade.data_planeada %} · 📅 {{ atividade.data_planeada|date:"j M Y" }}{% endif %}</p>
+    {% if atividade.notas %}<p class="text-xs text-suave" style="margin-top: 0.25rem;">{{ atividade.notas|truncatechars:100 }}</p>{% endif %}
+
+    {% if atividade.estado == 'feito' %}
+    <div class="d-flex gap-2 mt-1">
+      {% if atividade.avaliacao_a is not None %}
+      <span class="text-xs">A: {% for i in "12345"|make_list %}{% if forloop.counter <= atividade.avaliacao_a %}⭐{% else %}☆{% endif %}{% endfor %}</span>
+      {% endif %}
+      {% if atividade.avaliacao_b is not None %}
+      <span class="text-xs">B: {% for i in "12345"|make_list %}{% if forloop.counter <= atividade.avaliacao_b %}⭐{% else %}☆{% endif %}{% endfor %}</span>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="d-flex gap-1" style="margin-top: 0.75rem; flex-wrap: wrap;">
+      {% if atividade.estado == 'wishlist' %}
+      <form method="post" action="{% url 'mover_estado_atividade' atividade.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="estado" value="planeado">
+        <button type="submit" class="btn btn-sm btn-secundario">📅 {% trans "Planear" %}</button>
+      </form>
+      {% elif atividade.estado == 'planeado' %}
+      <form method="post" action="{% url 'mover_estado_atividade' atividade.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="estado" value="feito">
+        <button type="submit" class="btn btn-sm btn-sucesso">✓ {% trans "Já fizemos!" %}</button>
+      </form>
+      {% endif %}
+      {% if atividade.estado == 'feito' %}
+      <a href="{% url 'avaliar_atividade' atividade.pk %}" class="btn btn-sm btn-secundario">⭐ {% trans "Avaliar" %}</a>
+      {% endif %}
+      <a href="{% url 'editar_atividade' atividade.pk %}" class="btn btn-sm btn-secundario btn-icon">✏️</a>
+      <a href="{% url 'eliminar_atividade' atividade.pk %}" class="btn btn-sm btn-icon" style="background: #FEE2E2; color: #991B1B;">🗑️</a>
+    </div>
+  </div>
+  <div class="avatar avatar-sm" style="background: {{ atividade.created_by.profile.cor_perfil }}; align-self: flex-start;" title="{{ atividade.created_by.profile.nome_display }}">
+    {{ atividade.created_by.profile.iniciais }}
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="vazio" style="padding: 4rem 1rem;">
+  <div class="vazio-icone">🗺️</div>
+  <p class="vazio-texto">{% trans "Nenhuma atividade encontrada" %}</p>
+  <p class="vazio-sub">{% trans "Começa a construir a vossa wishlist!" %}</p>
+  <a href="{% url 'criar_atividade' %}" class="btn btn-primario mt-2">+ {% trans "Nova atividade" %}</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block titulo %}Lista de Compras{% endblock %}
+
+{% block conteudo %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">🛒 Lista de Compras</h1>
+    <p class="page-subtitle">{{ itens_pendentes.count }} item{{ itens_pendentes.count|pluralize:"s" }} por comprar</p>
+  </div>
+  <div class="d-flex gap-1">
+    <form method="post" action="{% url 'gerar_lista_compras' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-secundario btn-sm">✨ Gerar da semana</button>
+    </form>
+    <form method="post" action="{% url 'limpar_comprados' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-secundario btn-sm">🗑️ Limpar comprados</button>
+    </form>
+    <a href="{% url 'planeamento' %}" class="btn btn-secundario btn-sm">← Planeamento</a>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Adicionar item -->
+  <div>
+    <div class="card mb-2">
+      <div class="card-header">
+        <span class="card-titulo">Adicionar item</span>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primario w-100">+ Adicionar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista -->
+  <div>
+    <div class="card mb-2">
+      <div class="card-header">
+        <span class="card-titulo">Por comprar</span>
+        <span class="badge badge-pendente">{{ itens_pendentes.count }}</span>
+      </div>
+      {% if itens_pendentes %}
+        {% regroup itens_pendentes by get_categoria_display as itens_por_cat %}
+        {% for cat_group in itens_por_cat %}
+        <p class="text-xs text-suave font-medium" style="margin: 0.75rem 0 0.25rem; text-transform: uppercase; letter-spacing: 0.05em;">{{ cat_group.grouper }}</p>
+        {% for item in cat_group.list %}
+        <div class="item-compra {% if item.comprado %}comprado{% endif %}">
+          <form method="post" action="{% url 'marcar_comprado' item.pk %}">
+            {% csrf_token %}
+            <input type="checkbox" onchange="this.form.submit()" {% if item.comprado %}checked{% endif %} title="Marcar como comprado">
+          </form>
+          <div style="flex: 1;">
+            <span class="text-sm font-medium">{{ item.nome }}</span>
+            {% if item.quantidade %}<span class="text-xs text-suave"> · {{ item.quantidade }}</span>{% endif %}
+            {% if item.gerado_automaticamente %}<span class="text-xs" style="color: var(--cor-primaria);"> ✨</span>{% endif %}
+          </div>
+          <form method="post" action="{% url 'eliminar_item_compras' item.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-icon" style="background: none; color: #9CA3AF;">✕</button>
+          </form>
+        </div>
+        {% endfor %}
+        {% endfor %}
+      {% else %}
+      <div class="vazio">
+        <div class="vazio-icone">✅</div>
+        <p class="vazio-texto">Lista vazia!</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if itens_comprados %}
+    <div class="card">
+      <div class="card-header">
+        <span class="card-titulo">Comprados</span>
+        <span class="badge badge-concluida">{{ itens_comprados.count }}</span>
+      </div>
+      {% for item in itens_comprados %}
+      <div class="item-compra comprado">
+        <form method="post" action="{% url 'marcar_comprado' item.pk %}">
+          {% csrf_token %}
+          <input type="checkbox" checked onchange="this.form.submit()">
+        </form>
+        <span class="text-sm">{{ item.nome }}</span>
+        {% if item.comprado_por %}
+        <div class="avatar avatar-sm" style="background: {{ item.comprado_por.profile.cor_perfil }}" title="{{ item.comprado_por.profile.nome_display }}">
+          {{ item.comprado_por.profile.iniciais }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  input[type="text"], select {
+    width: 100%; padding: 0.6rem 0.875rem; border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-sm); font-size: 0.875rem; font-family: var(--fonte);
+  }
+  select { appearance: none; background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.25em; padding-right: 2.5rem; }
+  input:focus, select:focus { outline: none; border-color: var(--cor-primaria); }
+</style>
+{% endblock %}

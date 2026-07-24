@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}Eventos{% endblock %}
+
+{% block conteudo %}
+<div class="page-header">
+  <h1 class="page-title">📅 Próximos Eventos</h1>
+  <div class="d-flex gap-1">
+    <a href="{% url 'calendario' %}" class="btn btn-secundario">Calendário</a>
+    <a href="{% url 'criar_evento' %}" class="btn btn-primario">+ Evento</a>
+  </div>
+</div>
+
+{% if eventos %}
+{% for evento in eventos %}
+<div class="card mb-1" style="border-left: 4px solid {{ evento.cor }}; border-radius: 0 var(--raio-borda) var(--raio-borda) 0;">
+  <div class="d-flex align-center justify-between" style="flex-wrap: wrap; gap: 0.5rem;">
+    <div>
+      <p class="font-medium">{{ evento.titulo }}</p>
+      <p class="text-sm text-suave">{{ evento.data_inicio|date:"j \d\e F, H:i" }}{% if evento.data_fim %} — {{ evento.data_fim|date:"H:i" }}{% endif %}</p>
+      {% if evento.descricao %}<p class="text-xs text-suave">{{ evento.descricao|truncatechars:100 }}</p>{% endif %}
+      {% if evento.visibilidade == 'pessoal' %}<span class="badge" style="background: #EDE9FE; color: #5B21B6;">🔒 Pessoal</span>{% endif %}
+    </div>
+    <div class="d-flex gap-1">
+      <div class="avatar avatar-sm" style="background: {{ evento.pertence_a.profile.cor_perfil }}" title="{{ evento.pertence_a.profile.nome_display }}">
+        {{ evento.pertence_a.profile.iniciais }}
+      </div>
+      <a href="{% url 'editar_evento' evento.pk %}" class="btn btn-sm btn-secundario btn-icon">✏️</a>
+      <a href="{% url 'eliminar_evento' evento.pk %}" class="btn btn-sm btn-icon" style="background: #FEE2E2; color: #991B1B;">🗑️</a>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="vazio" style="padding: 4rem 1rem;">
+  <div class="vazio-icone">📭</div>
+  <p class="vazio-texto">Sem eventos próximos</p>
+  <a href="{% url 'criar_evento' %}" class="btn btn-primario mt-2">+ Criar evento</a>
+</div>
+{% endif %}
+{% endblock %}
