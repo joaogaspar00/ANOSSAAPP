@@ -18,7 +18,7 @@ def complete_task(task: Task) -> Task | None:
     Returns the new task if one was created, else None.
     """
     from datetime import datetime
-    task.completed = True
+    task.status = "done"
     task.completed_at = datetime.utcnow()
     db.session.flush()
 
@@ -33,7 +33,8 @@ def complete_task(task: Task) -> Task | None:
                 title=task.title,
                 description=task.description,
                 due_date=next_due,
-                completed=False,
+                priority=task.priority,
+                status="pending",
             )
             db.session.add(next_task)
             db.session.flush()

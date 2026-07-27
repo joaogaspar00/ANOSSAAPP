@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Objetivos{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Objetivos</h1>
+    <a href="{{ url_for('goals.add') }}" class="btn btn-primary">+ Objetivo</a>
+  </div>
+
+  <div style="display:flex;gap:.4rem;margin-bottom:1.25rem">
+    <a href="{{ url_for('goals.index', status='active') }}" class="btn btn-sm {% if filter_status == 'active' %}btn-primary{% else %}btn-ghost{% endif %}">Ativos</a>
+    <a href="{{ url_for('goals.index', status='completed') }}" class="btn btn-sm {% if filter_status == 'completed' %}btn-primary{% else %}btn-ghost{% endif %}">Concluídos</a>
+    <a href="{{ url_for('goals.index', status='paused') }}" class="btn btn-sm {% if filter_status == 'paused' %}btn-primary{% else %}btn-ghost{% endif %}">Pausados</a>
+    <a href="{{ url_for('goals.index', status='all') }}" class="btn btn-sm {% if filter_status == 'all' %}btn-primary{% else %}btn-ghost{% endif %}">Todos</a>
+  </div>
+
+  {% set type_label = {'financial':'Financeiro','travel':'Viagem','home':'Casa','personal':'Pessoal','other':'Outro'} %}
+
+  {% if goals %}
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      {% for g in goals %}
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+          <div>
+            <div style="font-weight:600;font-size:1rem">{{ g.title }}</div>
+            <div style="display:flex;gap:.4rem;margin-top:.3rem">
+              <span class="badge badge-green">{{ type_label[g.type] }}</span>
+              {% if g.status == 'paused' %}<span class="badge badge-gray">Pausado</span>{% endif %}
+              {% if g.status == 'completed' %}<span class="badge badge-green">Concluído</span>{% endif %}
+              {% if g.deadline %}<span class="badge badge-gray">até {{ g.deadline.strftime('%d. %b %Y') }}</span>{% endif %}
+            </div>
+          </div>
+          <div style="display:flex;gap:.35rem;flex-shrink:0">
+            <a href="{{ url_for('goals.edit', goal_id=g.id) }}" class="btn-icon btn-sm" title="Editar">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <form method="POST" action="{{ url_for('goals.delete', goal_id=g.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-icon btn-sm" onclick="return confirm('Eliminar objetivo?')" title="Eliminar">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {% if g.description %}<p style="font-size:.85rem;color:var(--text-muted);margin-top:.5rem">{{ g.description }}</p>{% endif %}
+
+        {% if g.target_value %}
+        <div style="margin-top:.75rem">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:.3rem">
+            <span>{{ "%.0f"|format(g.current_value) }} / {{ "%.0f"|format(g.target_value) }}{% if g.type == 'financial' %} {{ current_user.household.currency_symbol() }}{% endif %}</span>
+            <span style="font-weight:600;color:var(--accent)">{{ g.progress_percent() }}%</span>
+          </div>
+          <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:{{ g.progress_percent() }}%;background:var(--accent);border-radius:99px"></div>
+          </div>
+          {% if g.status == 'active' %}
+          <form method="POST" action="{{ url_for('goals.update_progress', goal_id=g.id) }}" style="display:flex;gap:.5rem;margin-top:.6rem">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input class="form-control" style="flex:1" type="number" step="0.01" name="current_value" value="{{ g.current_value }}">
+            <button type="submit" class="btn btn-secondary btn-sm">Atualizar</button>
+          </form>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if g.status != 'completed' %}
+        <form method="POST" action="{{ url_for('goals.toggle_pause', goal_id=g.id) }}" style="margin-top:.6rem">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-ghost btn-sm">{% if g.status == 'paused' %}Retomar{% else %}Pausar{% endif %}</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty card">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      <p>Sem objetivos aqui.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

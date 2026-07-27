@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Atividades{% endblock %}
+{% block content %}
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Atividades</h1>
+    <a href="{{ url_for('activities.add') }}" class="btn btn-primary">+ Atividade</a>
+  </div>
+
+  <div style="display:flex;gap:.4rem;margin-bottom:1.25rem;flex-wrap:wrap">
+    <a href="{{ url_for('activities.index') }}" class="btn btn-sm {% if not filter_status %}btn-primary{% else %}btn-ghost{% endif %}">Todas</a>
+    <a href="{{ url_for('activities.index', status='wishlist') }}" class="btn btn-sm {% if filter_status == 'wishlist' %}btn-primary{% else %}btn-ghost{% endif %}">Wishlist</a>
+    <a href="{{ url_for('activities.index', status='planned') }}" class="btn btn-sm {% if filter_status == 'planned' %}btn-primary{% else %}btn-ghost{% endif %}">Planeado</a>
+    <a href="{{ url_for('activities.index', status='done') }}" class="btn btn-sm {% if filter_status == 'done' %}btn-primary{% else %}btn-ghost{% endif %}">Feito</a>
+  </div>
+
+  {% set type_label = {'restaurant':'Restaurante','museum':'Museu / Exposição','show':'Concerto / Espetáculo','travel':'Viagem','cinema':'Cinema','sport':'Desporto','nature':'Natureza / Outdoor','other':'Outro'} %}
+  {% set next_status = {'wishlist':'planned','planned':'done'} %}
+  {% set next_label = {'wishlist':'Planear','planned':'Marcar como feito'} %}
+
+  {% if activities %}
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      {% for a in activities %}
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem">
+          <div>
+            <div style="font-weight:600;font-size:1rem">{{ a.name }}</div>
+            <div style="display:flex;gap:.4rem;margin-top:.3rem;flex-wrap:wrap">
+              <span class="badge badge-green">{{ type_label[a.type] }}</span>
+              <span class="badge badge-gray">
+                {% if a.status == 'wishlist' %}Wishlist{% elif a.status == 'planned' %}Planeado{% else %}Feito{% endif %}
+              </span>
+              {% if a.location %}<span class="badge badge-gray">📍 {{ a.location }}</span>{% endif %}
+              {% if a.planned_date and a.status != 'done' %}<span class="badge badge-gray">{{ a.planned_date.strftime('%d. %b %Y') }}</span>{% endif %}
+              {% if a.done_date %}<span class="badge badge-gray">✓ {{ a.done_date.strftime('%d. %b %Y') }}</span>{% endif %}
+              {% if a.average_rating() %}<span class="badge badge-orange">★ {{ "%.1f"|format(a.average_rating()) }}</span>{% endif %}
+            </div>
+          </div>
+          <div style="display:flex;gap:.35rem;flex-shrink:0">
+            <a href="{{ url_for('activities.edit', activity_id=a.id) }}" class="btn-icon btn-sm" title="Editar">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </a>
+            <form method="POST" action="{{ url_for('activities.delete', activity_id=a.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-icon btn-sm" onclick="return confirm('Eliminar atividade?')" title="Eliminar">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {% if a.notes %}<p style="font-size:.85rem;color:var(--text-muted);margin-top:.5rem">{{ a.notes }}</p>{% endif %}
+
+        <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;align-items:center">
+          {% if a.status in next_status %}
+          <form method="POST" action="{{ url_for('activities.move_status', activity_id=a.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="{{ next_status[a.status] }}">
+            <button type="submit" class="btn btn-secondary btn-sm">{{ next_label[a.status] }}</button>
+          </form>
+          {% endif %}
+          {% if a.status == 'done' %}
+          <form method="POST" action="{{ url_for('activities.rate', activity_id=a.id) }}" style="display:flex;gap:.4rem;align-items:center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <span style="font-size:.8rem;color:var(--text-muted)">A tua nota:</span>
+            <select name="value" class="form-control" style="width:70px;padding:.35rem .5rem">
+              {% set current_rating = a.rating_for(current_user) %}
+              {% for i in range(1, 6) %}
+                <option value="{{ i }}" {% if current_rating == i %}selected{% endif %}>{{ i }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-ghost btn-sm">Avaliar</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty card">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 10-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 000-7.8z"/></svg>
+      <p>Sem atividades aqui ainda.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

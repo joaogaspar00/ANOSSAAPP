@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Criar casal — ANOSSA</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent: #2d5a3d; --bg: #f7f5f2; --surface: #fff;
+      --border: #e5e0d8; --text: #1a1816; --text-muted: #7a736a;
+      --radius: 12px; --font: 'DM Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .wrap { width: 100%; max-width: 400px; }
+    .brand {
+      text-align: center; margin-bottom: .5rem;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem; color: var(--accent);
+    }
+    .subtitle { text-align: center; margin-bottom: 2rem; font-size: .9rem; color: var(--text-muted); }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-label { display: block; font-size: .78rem; font-weight: 500; color: var(--text-muted); margin-bottom: .4rem; }
+    .form-control {
+      width: 100%; padding: .7rem 1rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      background: var(--surface); color: var(--text);
+      font-size: .9rem; font-family: var(--font); outline: none;
+    }
+    .form-control:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%; padding: .75rem; border: none; border-radius: 8px;
+      background: var(--accent); color: #fff;
+      font-size: .9rem; font-weight: 500; cursor: pointer;
+    }
+    .btn:hover { opacity: .9; }
+    .footer-link { text-align: center; margin-top: 1.25rem; font-size: .85rem; color: var(--text-muted); }
+    .footer-link a { color: var(--accent); font-weight: 500; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">Cria o teu casal</div>
+  <div class="subtitle">Depois de criares, podes convidar o teu parceiro nas Definições.</div>
+  <div class="card">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="form-group">
+        <label class="form-label">{{ form.name.label.text }}</label>
+        {{ form.name(class="form-control", placeholder="ex: Casa do João e da Maria") }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ form.currency.label.text }}</label>
+        {{ form.currency(class="form-control") }}
+      </div>
+      <button type="submit" class="btn">Criar casal</button>
+    </form>
+  </div>
+  <div class="footer-link"><a href="{{ url_for('auth.logout') }}">Sair</a></div>
+</div>
+</body>
+</html>

@@ -4,10 +4,12 @@ from app.blueprints.inventory import inventory_bp
 from app.blueprints.inventory.forms import InventoryItemForm, AdjustQuantityForm
 from app.models import InventoryItem
 from app.extensions import db
+from app.utils import household_required
 
 
 @inventory_bp.route("/")
 @login_required
+@household_required
 def index():
     household_id = current_user.household_id
     items = InventoryItem.query.filter_by(household_id=household_id).order_by(
@@ -27,6 +29,7 @@ def index():
 
 @inventory_bp.route("/add", methods=["GET", "POST"])
 @login_required
+@household_required
 def add():
     form = InventoryItemForm()
     if form.validate_on_submit():
@@ -48,6 +51,7 @@ def add():
 
 @inventory_bp.route("/<int:item_id>/edit", methods=["GET", "POST"])
 @login_required
+@household_required
 def edit(item_id):
     item = InventoryItem.query.filter_by(
         id=item_id, household_id=current_user.household_id
@@ -63,6 +67,7 @@ def edit(item_id):
 
 @inventory_bp.route("/<int:item_id>/adjust", methods=["POST"])
 @login_required
+@household_required
 def adjust(item_id):
     item = InventoryItem.query.filter_by(
         id=item_id, household_id=current_user.household_id
@@ -79,6 +84,7 @@ def adjust(item_id):
 
 @inventory_bp.route("/<int:item_id>/delete", methods=["POST"])
 @login_required
+@household_required
 def delete(item_id):
     item = InventoryItem.query.filter_by(
         id=item_id, household_id=current_user.household_id

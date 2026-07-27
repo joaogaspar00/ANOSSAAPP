@@ -11,13 +11,30 @@
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.25rem">
     <div class="card" style="padding:1rem 1.25rem">
       <div class="card__title">Despesas do mês</div>
-      <div style="font-size:1.5rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(monthly_total) }} kr</div>
+      <div style="font-size:1.5rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(monthly_total) }} {{ current_user.household.currency_symbol() }}</div>
     </div>
     <div class="card" style="padding:1rem 1.25rem">
       <div class="card__title">Refeições da semana (est.)</div>
-      <div style="font-size:1.5rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(weekly_cost) }} kr</div>
+      <div style="font-size:1.5rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(weekly_cost) }} {{ current_user.household.currency_symbol() }}</div>
     </div>
   </div>
+
+  <!-- ── Balance ── -->
+  {% if partner and balance.owes is not none and balance.amount > 0 %}
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Saldo</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <p style="font-size:.9rem">
+        {% if balance.owes %}
+          Deves <strong>{{ "%.2f"|format(balance.amount) }} {{ current_user.household.currency_symbol() }}</strong> a {{ partner.display_name }}
+        {% else %}
+          {{ partner.display_name }} deve-te <strong>{{ "%.2f"|format(balance.amount) }} {{ current_user.household.currency_symbol() }}</strong>
+        {% endif %}
+      </p>
+      <a href="{{ url_for('finance.index') }}" class="btn btn-secondary btn-sm">Ver finanças</a>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- ── Low inventory alerts ── -->
   {% if low_inventory %}
@@ -49,7 +66,7 @@
           <span class="badge badge-green">{{ {'breakfast':'Pequeno-almoço','lunch':'Almoço','dinner':'Jantar','snack':'Lanche'}[mp.meal_slot] }}</span>
           <span style="font-weight:500">{{ mp.display_name }}</span>
           {% if mp.recipe %}
-            <span style="color:var(--text-muted);font-size:.8rem">{{ "%.0f"|format(mp.recipe.cost_per_serving * mp.servings_planned) }} kr</span>
+            <span style="color:var(--text-muted);font-size:.8rem">{{ "%.0f"|format(mp.recipe.cost_per_serving * mp.servings_planned) }} {{ current_user.household.currency_symbol() }}</span>
           {% endif %}
         </li>
         {% endfor %}
@@ -96,5 +113,21 @@
       </div>
     {% endif %}
   </div>
+
+  <!-- ── Partner's recent activities ── -->
+  {% if recent_partner_activities %}
+  <div class="card" style="margin-top:1rem">
+    <div class="card__title">{{ partner.display_name }} adicionou à wishlist</div>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:.4rem">
+      {% for a in recent_partner_activities %}
+      <li style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.85rem">{{ a.name }}</span>
+        <span class="badge badge-gray">{{ a.status }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    <a href="{{ url_for('activities.index') }}" style="font-size:.8rem;color:var(--accent);display:block;text-align:center;margin-top:.75rem">Ver atividades →</a>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

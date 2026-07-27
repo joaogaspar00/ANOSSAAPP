@@ -42,11 +42,11 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:.5rem;border-top:1px solid var(--border)">
           <div>
             <div style="font-size:.75rem;color:var(--text-muted)">Total</div>
-            <div style="font-weight:600;color:var(--accent)">{{ "%.0f"|format(r.total_cost) }} kr</div>
+            <div style="font-weight:600;color:var(--accent)">{{ "%.0f"|format(r.total_cost) }} {{ current_user.household.currency_symbol() }}</div>
           </div>
           <div style="text-align:right">
             <div style="font-size:.75rem;color:var(--text-muted)">Por porção</div>
-            <div style="font-weight:600">{{ "%.0f"|format(r.cost_per_serving) }} kr</div>
+            <div style="font-weight:600">{{ "%.0f"|format(r.cost_per_serving) }} {{ current_user.household.currency_symbol() }}</div>
           </div>
           <a href="{{ url_for('meals.view_recipe', recipe_id=r.id) }}" class="btn btn-ghost btn-sm">Ver →</a>
         </div>

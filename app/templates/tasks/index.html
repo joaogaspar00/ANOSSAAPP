@@ -9,22 +9,26 @@
 
   <!-- Filter tabs -->
   <div style="display:flex;gap:.4rem;margin-bottom:1.25rem">
-    <a href="{{ url_for('tasks.index', status='pending') }}"
-       class="btn btn-sm {% if filter_status == 'pending' %}btn-primary{% else %}btn-ghost{% endif %}">Activas</a>
+    <a href="{{ url_for('tasks.index', status='active') }}"
+       class="btn btn-sm {% if filter_status == 'active' %}btn-primary{% else %}btn-ghost{% endif %}">Activas</a>
     <a href="{{ url_for('tasks.index', status='all') }}"
        class="btn btn-sm {% if filter_status == 'all' %}btn-primary{% else %}btn-ghost{% endif %}">Todas</a>
     <a href="{{ url_for('tasks.index', status='done') }}"
        class="btn btn-sm {% if filter_status == 'done' %}btn-primary{% else %}btn-ghost{% endif %}">Concluídas</a>
   </div>
 
+  {% set priority_badge = {'low': 'badge-gray', 'medium': 'badge-orange', 'high': 'badge-red'} %}
+  {% set priority_label = {'low': 'Baixa', 'medium': 'Média', 'high': 'Alta'} %}
+
   {% if tasks %}
     <ul style="list-style:none;display:flex;flex-direction:column;gap:.5rem">
       {% for task in tasks %}
       <li class="card" style="padding:.9rem 1.1rem">
         <div style="display:flex;align-items:flex-start;gap:.75rem">
-          {% if not task.completed %}
-          <form method="POST" action="{{ url_for('tasks.complete', task_id=task.id) }}" style="flex-shrink:0;margin-top:.1rem">
+          {% if task.status != 'done' %}
+          <form method="POST" action="{{ url_for('tasks.set_status', task_id=task.id) }}" style="flex-shrink:0;margin-top:.1rem">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="status" value="done">
             <button type="submit" class="btn-icon" style="width:28px;height:28px;border-radius:50%" title="Marcar como concluída">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
@@ -37,7 +41,7 @@
 
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem">
-              <span style="font-weight:500;font-size:.9rem{% if task.completed %};color:var(--text-muted);text-decoration:line-through{% endif %}">
+              <span style="font-weight:500;font-size:.9rem{% if task.status == 'done' %};color:var(--text-muted);text-decoration:line-through{% endif %}">
                 {{ task.title }}
               </span>
               <div style="display:flex;gap:.35rem;flex-shrink:0">
@@ -53,10 +57,20 @@
               </div>
             </div>
             <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem">
+              {% if task.status == 'in_progress' %}
+                <span class="badge badge-green">Em curso</span>
+              {% elif task.status == 'pending' %}
+                <form method="POST" action="{{ url_for('tasks.set_status', task_id=task.id) }}" style="display:inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="in_progress">
+                  <button type="submit" class="badge badge-gray" style="border:none;cursor:pointer">Iniciar</button>
+                </form>
+              {% endif %}
+              <span class="badge {{ priority_badge[task.priority] }}">{{ priority_label[task.priority] }}</span>
               {% if task.due_date %}
-                <span class="badge {% if not task.completed and task.due_date < today %}badge-red{% else %}badge-gray{% endif %}">
+                <span class="badge {% if task.status != 'done' and task.due_date < today %}badge-red{% else %}badge-gray{% endif %}">
                   {{ task.due_date.strftime('%d. %b %Y') }}
-                  {% if not task.completed and task.due_date < today %} · Atrasada{% endif %}
+                  {% if task.status != 'done' and task.due_date < today %} · Atrasada{% endif %}
                 </span>
               {% endif %}
               {% if task.assigned_to %}

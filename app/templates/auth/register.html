@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar sessão — ANOSSA</title>
+  <title>Criar conta — ANOSSA</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
   <style>
     :root {
       --accent: #2d5a3d; --bg: #f7f5f2; --surface: #fff;
       --border: #e5e0d8; --text: #1a1816; --text-muted: #7a736a;
       --danger: #c0392b; --danger-light: #fdecea;
+      --accent-light: #e8f0eb;
       --radius: 12px; --font: 'DM Sans', sans-serif;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,14 +21,14 @@
       display: flex; align-items: center; justify-content: center;
       padding: 1.5rem;
     }
-    .login-wrap { width: 100%; max-width: 380px; }
-    .login-brand {
-      text-align: center; margin-bottom: 2.5rem;
+    .wrap { width: 100%; max-width: 400px; }
+    .brand {
+      text-align: center; margin-bottom: 2rem;
       font-family: 'DM Serif Display', serif;
       font-size: 2rem; color: var(--accent);
       letter-spacing: -.02em;
     }
-    .login-brand span {
+    .brand span {
       display: block; font-family: var(--font);
       font-size: .75rem; font-weight: 400;
       color: var(--text-muted); letter-spacing: .1em;
@@ -38,7 +39,8 @@
       border-radius: var(--radius); padding: 2rem;
       box-shadow: 0 2px 12px rgba(0,0,0,.06);
     }
-    .form-group { margin-bottom: 1.25rem; }
+    .form-group { margin-bottom: 1.1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .form-label { display: block; font-size: .78rem; font-weight: 500; color: var(--text-muted); margin-bottom: .4rem; }
     .form-control {
       width: 100%; padding: .7rem 1rem;
@@ -61,14 +63,25 @@
       background: var(--danger-light); color: #7b1a14;
       border-left: 3px solid var(--danger); margin-bottom: 1rem;
     }
+    .invite-banner {
+      padding: .7rem 1rem; border-radius: 8px; font-size: .85rem;
+      background: var(--accent-light); color: var(--accent);
+      border-left: 3px solid var(--accent); margin-bottom: 1rem;
+    }
+    .footer-link { text-align: center; margin-top: 1.25rem; font-size: .85rem; color: var(--text-muted); }
+    .footer-link a { color: var(--accent); font-weight: 500; }
   </style>
 </head>
 <body>
-<div class="login-wrap">
-  <div class="login-brand">
+<div class="wrap">
+  <div class="brand">
     ANOSSA
     <span>Gestão do Lar</span>
   </div>
+
+  {% if invite_household %}
+    <div class="invite-banner">Estás a juntar-te ao casal "{{ invite_household.name }}".</div>
+  {% endif %}
 
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for category, message in messages %}
@@ -77,24 +90,41 @@
   {% endwith %}
 
   <div class="card">
-    <form method="POST" action="{{ url_for('auth.login') }}">
+    <form method="POST">
       {{ form.hidden_tag() }}
       <div class="form-group">
-        <label class="form-label">{{ form.username.label.text }}</label>
-        {{ form.username(class="form-control", placeholder="nome de utilizador", autocomplete="username") }}
-        {% for e in form.username.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        <label class="form-label">{{ form.display_name.label.text }}</label>
+        {{ form.display_name(class="form-control", placeholder="O teu nome") }}
+        {% for e in form.display_name.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
       </div>
-      <div class="form-group">
-        <label class="form-label">{{ form.password.label.text }}</label>
-        {{ form.password(class="form-control", placeholder="••••••••", autocomplete="current-password") }}
-        {% for e in form.password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ form.username.label.text }}</label>
+          {{ form.username(class="form-control", autocomplete="username") }}
+          {% for e in form.username.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ form.email.label.text }}</label>
+          {{ form.email(class="form-control", autocomplete="email") }}
+          {% for e in form.email.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
       </div>
-      <button type="submit" class="btn">Iniciar sessão</button>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ form.password.label.text }}</label>
+          {{ form.password(class="form-control", autocomplete="new-password") }}
+          {% for e in form.password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ form.confirm_password.label.text }}</label>
+          {{ form.confirm_password(class="form-control", autocomplete="new-password") }}
+          {% for e in form.confirm_password.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+        </div>
+      </div>
+      <button type="submit" class="btn">Criar conta</button>
     </form>
   </div>
-  <div style="text-align:center;margin-top:1.25rem;font-size:.85rem;color:var(--text-muted)">
-    Ainda não tens conta? <a href="{{ url_for('auth.register') }}" style="color:var(--accent);font-weight:500">Criar conta</a>
-  </div>
+  <div class="footer-link">Já tens conta? <a href="{{ url_for('auth.login') }}">Iniciar sessão</a></div>
 </div>
 </body>
 </html>

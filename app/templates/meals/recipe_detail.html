@@ -15,8 +15,8 @@
     {% if recipe.category %}<span class="badge badge-green">{{ recipe.category }}</span>{% endif %}
     <span class="badge badge-gray">👥 {{ recipe.servings }} porções</span>
     {% if recipe.prep_time_minutes %}<span class="badge badge-gray">⏱ {{ recipe.prep_time_minutes }} min</span>{% endif %}
-    <span class="badge badge-gray">💰 {{ "%.0f"|format(recipe.total_cost) }} kr total</span>
-    <span class="badge badge-gray">{{ "%.0f"|format(recipe.cost_per_serving) }} kr/port.</span>
+    <span class="badge badge-gray">💰 {{ "%.0f"|format(recipe.total_cost) }} {{ current_user.household.currency_symbol() }} total</span>
+    <span class="badge badge-gray">{{ "%.0f"|format(recipe.cost_per_serving) }} {{ current_user.household.currency_symbol() }}/port.</span>
   </div>
 
   <!-- Ingredients -->
@@ -37,13 +37,13 @@
           <td style="padding:.5rem 0">{{ ri.ingredient.name }}</td>
           <td style="text-align:right;padding:.5rem 0;color:var(--text-muted)">{{ ri.quantity }} {{ ri.unit }}</td>
           <td style="text-align:right;padding:.5rem 0;font-weight:500">
-            {% if ri.line_cost > 0 %}{{ "%.1f"|format(ri.line_cost) }} kr{% else %}—{% endif %}
+            {% if ri.line_cost > 0 %}{{ "%.1f"|format(ri.line_cost) }} {{ current_user.household.currency_symbol() }}{% else %}—{% endif %}
           </td>
         </tr>
         {% endfor %}
         <tr style="font-weight:600">
-          <td style="padding:.6rem 0" colspan="2">Total (kr)</td>
-          <td style="text-align:right;color:var(--accent)">{{ "%.0f"|format(recipe.total_cost) }} kr</td>
+          <td style="padding:.6rem 0" colspan="2">Total</td>
+          <td style="text-align:right;color:var(--accent)">{{ "%.0f"|format(recipe.total_cost) }} {{ current_user.household.currency_symbol() }}</td>
         </tr>
       </tbody>
     </table>

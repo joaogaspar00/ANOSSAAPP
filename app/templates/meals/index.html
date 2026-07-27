@@ -66,7 +66,7 @@
           <div class="meal-card {% if mp.completed %}completed{% endif %}">
             <div class="meal-card__name">{{ mp.display_name }}</div>
             {% if mp.recipe %}
-              <div class="meal-card__cost">~{{ "%.0f"|format(mp.recipe.cost_per_serving * mp.servings_planned) }} kr</div>
+              <div class="meal-card__cost">~{{ "%.0f"|format(mp.recipe.cost_per_serving * mp.servings_planned) }} {{ current_user.household.currency_symbol() }}</div>
             {% endif %}
             <div style="display:flex;gap:.2rem;margin-top:.35rem">
               {% if not mp.completed %}

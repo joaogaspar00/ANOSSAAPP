@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ code }} — ANOSSA</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --accent: #2d5a3d; --bg: #f7f5f2; --surface: #fff;
+      --border: #e5e0d8; --text: #1a1816; --text-muted: #7a736a;
+      --font: 'DM Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem; text-align: center;
+    }
+    .wrap { max-width: 420px; }
+    .code {
+      font-family: 'DM Serif Display', serif;
+      font-size: 3.5rem; color: var(--accent); line-height: 1;
+    }
+    h1 { font-size: 1.15rem; margin: .75rem 0 .5rem; }
+    p { color: var(--text-muted); font-size: .9rem; margin-bottom: 1.5rem; }
+    a.btn {
+      display: inline-block; padding: .65rem 1.3rem; border-radius: 8px;
+      background: var(--accent); color: #fff; font-size: .9rem; font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="code">{{ code }}</div>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  <a class="btn" href="{{ url_for('dashboard.index') }}">Voltar ao início</a>
+</div>
+</body>
+</html>

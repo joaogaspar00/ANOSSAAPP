@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{% if editing %}Editar atividade{% else %}Nova atividade{% endif %}{% endblock %}
+{% block content %}
+<div class="page" style="max-width:520px">
+  <div class="page-header">
+    <h1 class="page-title">{% if editing %}Editar atividade{% else %}Nova atividade{% endif %}</h1>
+    <a href="{{ url_for('activities.index') }}" class="btn btn-ghost">Voltar</a>
+  </div>
+  <div class="card">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="form-group">
+        <label class="form-label">{{ form.name.label.text }}</label>
+        {{ form.name(class="form-control") }}
+        {% for e in form.name.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ form.type.label.text }}</label>
+          {{ form.type(class="form-control") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ form.planned_date.label.text }}</label>
+          {{ form.planned_date(class="form-control", type="date") }}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ form.location.label.text }} <span style="color:var(--text-muted)">(opcional)</span></label>
+        {{ form.location(class="form-control") }}
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ form.notes.label.text }} <span style="color:var(--text-muted)">(opcional)</span></label>
+        {{ form.notes(class="form-control", rows=3) }}
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%">Guardar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

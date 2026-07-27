@@ -24,9 +24,13 @@
           {{ form.due_date(class="form-control", type="date") }}
         </div>
         <div class="form-group">
-          <label class="form-label">{{ form.assigned_to_id.label.text }}</label>
-          {{ form.assigned_to_id(class="form-control") }}
+          <label class="form-label">{{ form.priority.label.text }}</label>
+          {{ form.priority(class="form-control") }}
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{{ form.assigned_to_id.label.text }}</label>
+        {{ form.assigned_to_id(class="form-control") }}
       </div>
       <div class="form-group">
         <label class="form-label">{{ form.recurrence_type.label.text }}</label>

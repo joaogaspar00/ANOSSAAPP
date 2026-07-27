@@ -11,21 +11,25 @@
     <div class="card__title">Agregado familiar</div>
     <form method="POST" action="{{ url_for('settings.update_household') }}">
       {{ household_form.hidden_tag() }}
-      <div style="display:flex;gap:.5rem;align-items:flex-end">
-        <div class="form-group" style="flex:1;margin-bottom:0">
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
           <label class="form-label">{{ household_form.name.label.text }}</label>
           {{ household_form.name(class="form-control") }}
         </div>
-        <button type="submit" class="btn btn-secondary">Guardar</button>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">{{ household_form.currency.label.text }}</label>
+          {{ household_form.currency(class="form-control") }}
+        </div>
       </div>
+      <button type="submit" class="btn btn-secondary" style="margin-top:.75rem">Guardar</button>
     </form>
     <hr>
     <div>
       <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:.5rem;font-weight:500">Utilizadores</div>
       {% for u in users %}
       <div style="display:flex;align-items:center;gap:.75rem;padding:.4rem 0;border-bottom:1px solid var(--border)">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.8rem;flex-shrink:0">
-          {{ u.display_name[0].upper() }}
+        <div style="width:32px;height:32px;border-radius:50%;background:{{ u.color }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:.8rem;flex-shrink:0">
+          {{ u.initials() }}
         </div>
         <div>
           <div style="font-weight:500;font-size:.9rem">{{ u.display_name }}</div>
@@ -37,18 +41,55 @@
     </div>
   </div>
 
+  <!-- Invite -->
+  {% if not household.is_complete() %}
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Convidar parceiro</div>
+    {% if household.invite_active %}
+      <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:.75rem">Partilha este link para o teu parceiro se juntar ao casal.</p>
+      <div class="form-group">
+        <input class="form-control" type="text" readonly value="{{ invite_url }}" onclick="this.select()">
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <form method="POST" action="{{ url_for('settings.regenerate_invite') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-secondary btn-sm">Gerar novo link</button>
+        </form>
+        <form method="POST" action="{{ url_for('settings.deactivate_invite') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-ghost btn-sm">Desativar convite</button>
+        </form>
+      </div>
+    {% else %}
+      <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:.75rem">O convite está desativado.</p>
+      <form method="POST" action="{{ url_for('settings.regenerate_invite') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-secondary btn-sm">Gerar link de convite</button>
+      </form>
+    {% endif %}
+  </div>
+  {% endif %}
+
   <!-- Profile -->
   <div class="card" style="margin-bottom:1rem">
     <div class="card__title">O teu perfil</div>
     <form method="POST" action="{{ url_for('settings.update_profile') }}">
       {{ profile_form.hidden_tag() }}
-      <div style="display:flex;gap:.5rem;align-items:flex-end">
-        <div class="form-group" style="flex:1;margin-bottom:0">
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
           <label class="form-label">{{ profile_form.display_name.label.text }}</label>
           {{ profile_form.display_name(class="form-control") }}
         </div>
-        <button type="submit" class="btn btn-secondary">Guardar</button>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">{{ profile_form.color.label.text }}</label>
+          {{ profile_form.color(class="form-control", type="color") }}
+        </div>
       </div>
+      <div class="form-group" style="margin-top:.75rem">
+        <label class="form-label">{{ profile_form.bio.label.text }}</label>
+        {{ profile_form.bio(class="form-control", rows=2) }}
+      </div>
+      <button type="submit" class="btn btn-secondary">Guardar</button>
     </form>
   </div>
 
@@ -82,7 +123,7 @@
   <div class="card" style="margin-bottom:1rem">
     <div class="card__title">Atualização de preços</div>
     <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:.75rem">
-      Atualiza os preços dos ingredientes a partir do motor de preços dinamarquês (mock). Em produção pode ser ligado a APIs de supermercados.
+      Atualiza os preços dos ingredientes a partir do motor de preços de referência (mock). Em produção pode ser ligado a APIs de supermercados portugueses.
     </p>
     <form method="POST" action="{{ url_for('settings.refresh_prices') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

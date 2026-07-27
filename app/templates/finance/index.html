@@ -22,13 +22,37 @@
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-bottom:1.25rem">
     <div class="card" style="padding:1rem 1.25rem">
       <div class="card__title">Total</div>
-      <div style="font-size:1.75rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(total) }} kr</div>
+      <div style="font-size:1.75rem;font-weight:600;color:var(--accent)">{{ "%.0f"|format(total) }} {{ current_user.household.currency_symbol() }}</div>
     </div>
     <div class="card" style="padding:1rem 1.25rem">
       <div class="card__title">Categorias</div>
       <div style="font-size:1.75rem;font-weight:600">{{ by_category|length }}</div>
     </div>
   </div>
+
+  <!-- Balance -->
+  {% if partner %}
+  <div class="card" style="margin-bottom:1rem">
+    <div class="card__title">Saldo com {{ partner.display_name }}</div>
+    {% if balance.owes is none or balance.amount == 0 %}
+      <p style="font-size:.9rem;color:var(--text-muted)">Estão em dia. 🎉</p>
+    {% else %}
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <p style="font-size:.9rem">
+          {% if balance.owes %}
+            Deves <strong>{{ "%.2f"|format(balance.amount) }} {{ current_user.household.currency_symbol() }}</strong> a {{ partner.display_name }}
+          {% else %}
+            {{ partner.display_name }} deve-te <strong>{{ "%.2f"|format(balance.amount) }} {{ current_user.household.currency_symbol() }}</strong>
+          {% endif %}
+        </p>
+        <form method="POST" action="{{ url_for('finance.settle') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-secondary btn-sm">Liquidar saldo</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- By category -->
   {% if by_category %}
@@ -39,7 +63,7 @@
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;margin-bottom:.2rem">
           <span style="font-size:.85rem;font-weight:500">{{ cat }}</span>
-          <span style="font-size:.85rem;color:var(--text-muted)">{{ "%.0f"|format(amt) }} kr</span>
+          <span style="font-size:.85rem;color:var(--text-muted)">{{ "%.0f"|format(amt) }} {{ current_user.household.currency_symbol() }}</span>
         </div>
         <div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden">
           <div style="height:100%;width:{{ (amt / total * 100)|round|int if total > 0 else 0 }}%;background:var(--accent);border-radius:99px"></div>
@@ -52,7 +76,10 @@
 
   <!-- Expenses list -->
   <div class="card">
-    <div class="card__title">Despesas — {{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][month-1] }} {{ year }}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <div class="card__title" style="margin:0">Despesas — {{ ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][month-1] }} {{ year }}</div>
+      <a href="{{ url_for('finance.export_csv', month=month, year=year) }}" class="btn btn-ghost btn-sm">Exportar CSV</a>
+    </div>
     {% if expenses %}
       <ul style="list-style:none">
         {% for e in expenses %}
@@ -60,13 +87,17 @@
           <div style="flex:1;min-width:0">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span style="font-weight:500;font-size:.9rem">{{ e.note or e.category }}</span>
-              <span style="font-weight:600;color:var(--accent)">{{ "%.0f"|format(e.amount) }} kr</span>
+              <span style="font-weight:600;color:var(--accent)">{{ "%.2f"|format(e.amount) }} {{ current_user.household.currency_symbol() }}</span>
             </div>
-            <div style="display:flex;gap:.5rem;margin-top:.2rem">
+            <div style="display:flex;gap:.5rem;margin-top:.2rem;flex-wrap:wrap">
               <span class="badge badge-gray">{{ e.category }}</span>
+              {% if e.paid_by %}<span class="badge badge-green">{{ e.paid_by.display_name }}</span>{% endif %}
               <span style="font-size:.75rem;color:var(--text-muted)">{{ e.date.strftime('%d. %b') }}</span>
             </div>
           </div>
+          <a href="{{ url_for('finance.edit', expense_id=e.id) }}" class="btn-icon btn-sm" title="Editar">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </a>
           <form method="POST" action="{{ url_for('finance.delete', expense_id=e.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn-icon btn-sm" onclick="return confirm('Eliminar despesa?')" title="Eliminar">

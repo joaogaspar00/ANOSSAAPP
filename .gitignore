@@ -1,2 +1,7 @@
 __pycache__/
-
+.venv/
+.env
+*.db
+instance/
+staticfiles/
+media/

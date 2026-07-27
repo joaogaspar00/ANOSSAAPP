@@ -12,38 +12,35 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: .6rem .5rem;
-    min-height: 110px;
+    padding: .5rem .4rem;
+    min-height: 90px;
   }
+  .cal-day.empty { background: transparent; border-color: transparent; }
   .cal-day.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .cal-day__header {
-    font-size: .7rem; font-weight: 600;
-    color: var(--text-muted); margin-bottom: .4rem;
-    text-transform: uppercase; letter-spacing: .05em;
-  }
   .cal-day__date {
-    font-size: .95rem; font-weight: 600; margin-bottom: .4rem;
+    font-size: .85rem; font-weight: 600; margin-bottom: .3rem;
   }
   .cal-event {
-    display: block; font-size: .72rem; padding: .2rem .4rem;
-    border-radius: 4px; margin-bottom: .2rem;
+    display: block; font-size: .68rem; padding: .15rem .35rem;
+    border-radius: 4px; margin-bottom: .18rem;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .cal-event-task    { background: var(--accent-light); color: var(--accent); }
   .cal-event-meal    { background: #e8f4f8; color: #1a5c7a; }
   .cal-event-ext     { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
   .cal-event-shop    { background: var(--warn-light); color: var(--warn); }
+  .cal-event-personal { background: #f3e8fd; color: #6a2fa3; }
   .day-label { font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;text-align:center; }
 </style>
 {% endblock %}
 {% block content %}
 <div class="page">
   <div class="page-header">
-    <h1 class="page-title">Calendário</h1>
+    <h1 class="page-title">{{ month_name }} {{ year }}</h1>
     <div style="display:flex;gap:.4rem">
-      <a href="{{ url_for('calendar.index', week=week_offset-1) }}" class="btn btn-ghost btn-sm">‹</a>
-      <a href="{{ url_for('calendar.index', week=0) }}" class="btn btn-ghost btn-sm">Hoje</a>
-      <a href="{{ url_for('calendar.index', week=week_offset+1) }}" class="btn btn-ghost btn-sm">›</a>
+      <a href="{{ url_for('calendar.index', month=prev_month, year=prev_year) }}" class="btn btn-ghost btn-sm">‹</a>
+      <a href="{{ url_for('calendar.index') }}" class="btn btn-ghost btn-sm">Hoje</a>
+      <a href="{{ url_for('calendar.index', month=next_month, year=next_year) }}" class="btn btn-ghost btn-sm">›</a>
     </div>
   </div>
 
@@ -51,37 +48,45 @@
 
   <!-- Day headers -->
   <div class="cal-grid" style="min-height:0;margin-bottom:.3rem">
-    {% for d in week_days %}
-    <div class="day-label">{{ wd_names[loop.index0] }}</div>
+    {% for wd in wd_names %}
+    <div class="day-label">{{ wd }}</div>
     {% endfor %}
   </div>
 
-  <!-- Week grid -->
+  <!-- Month grid -->
+  {% for week in weeks %}
   <div class="cal-grid">
-    {% for d in week_days %}
-    <div class="cal-day {% if d == today %}today{% endif %}">
-      <div class="cal-day__date">{{ d.day }}</div>
-      {% for t in day_map[d].tasks %}
-        <span class="cal-event cal-event-task" title="{{ t.title }}">✓ {{ t.title }}</span>
-      {% endfor %}
-      {% for m in day_map[d].meals %}
-        <span class="cal-event cal-event-meal" title="{{ m.display_name }}">
-          {{ {'breakfast':'🌅','lunch':'☀️','dinner':'🌙','snack':'🍎'}[m.meal_slot] }} {{ m.display_name }}
-        </span>
-      {% endfor %}
-      {% for e in day_map[d].events %}
-        <span class="cal-event {% if e.event_type == 'shopping' %}cal-event-shop{% else %}cal-event-ext{% endif %}" title="{{ e.title }}">
-          {{ e.title }}
-        </span>
-      {% endfor %}
-    </div>
+    {% for day in week %}
+      {% if day == 0 %}
+        <div class="cal-day empty"></div>
+      {% else %}
+        <div class="cal-day {% if year == today.year and month == today.month and day == today.day %}today{% endif %}">
+          <div class="cal-day__date">{{ day }}</div>
+          {% for item in events_by_day[day] %}
+            {% if item.kind == 'task' %}
+              <span class="cal-event cal-event-task" title="{{ item.obj.title }}">✓ {{ item.obj.title }}</span>
+            {% elif item.kind == 'meal' %}
+              <span class="cal-event cal-event-meal" title="{{ item.obj.display_name }}">
+                {{ {'breakfast':'🌅','lunch':'☀️','dinner':'🌙','snack':'🍎'}[item.obj.meal_slot] }} {{ item.obj.display_name }}
+              </span>
+            {% else %}
+              <a href="{{ url_for('calendar.edit_event', event_id=item.obj.id) }}"
+                 class="cal-event {% if item.obj.visibility == 'personal' %}cal-event-personal{% elif item.obj.event_type == 'shopping' %}cal-event-shop{% else %}cal-event-ext{% endif %}"
+                 title="{{ item.obj.title }}">
+                {{ item.obj.title }}
+              </a>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
     {% endfor %}
   </div>
+  {% endfor %}
 
   <!-- Add event -->
   <div class="card" style="max-width:520px">
     <div class="card__title">Adicionar evento</div>
-    <form method="POST" action="{{ url_for('calendar.add_event') }}">
+    <form method="POST" action="{{ url_for('calendar.add_event', month=month, year=year) }}">
       {{ form.hidden_tag() }}
       <div class="form-row">
         <div class="form-group">
@@ -97,6 +102,10 @@
         <div class="form-group">
           <label class="form-label">Tipo</label>
           {{ form.event_type(class="form-control") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Visibilidade</label>
+          {{ form.visibility(class="form-control") }}
         </div>
       </div>
       <button type="submit" class="btn btn-primary">Adicionar</button>

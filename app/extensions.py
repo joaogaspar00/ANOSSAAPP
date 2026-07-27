@@ -18,5 +18,5 @@ migrate = Migrate()
 
 # Redirect unauthenticated users to the login page
 login_manager.login_view = "auth.login"
-login_manager.login_message = "Log ind for at fortsætte."
+login_manager.login_message = "Inicia sessão para continuar."
 login_manager.login_message_category = "info"

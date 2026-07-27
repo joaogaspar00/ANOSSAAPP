@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Nova despesa{% endblock %}
+{% block title %}{% if editing %}Editar despesa{% else %}Nova despesa{% endif %}{% endblock %}
 {% block content %}
 <div class="page" style="max-width:520px">
   <div class="page-header">
-    <h1 class="page-title">Nova despesa</h1>
+    <h1 class="page-title">{% if editing %}Editar despesa{% else %}Nova despesa{% endif %}</h1>
     <a href="{{ url_for('finance.index') }}" class="btn btn-ghost">Voltar</a>
   </div>
   <div class="card">
@@ -16,15 +16,36 @@
           {% for e in form.date.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
         </div>
         <div class="form-group">
-          <label class="form-label">{{ form.amount.label.text }}</label>
+          <label class="form-label">{{ form.amount.label.text }} ({{ current_user.household.currency_symbol() }})</label>
           {{ form.amount(class="form-control", placeholder="0.00", step="0.01") }}
           {% for e in form.amount.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">{{ form.category.label.text }}</label>
-        {{ form.category(class="form-control") }}
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">{{ form.category.label.text }}</label>
+          {{ form.category(class="form-control") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ form.paid_by_id.label.text }}</label>
+          {{ form.paid_by_id(class="form-control") }}
+        </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">{{ form.split_type.label.text }}</label>
+        {{ form.split_type(class="form-control", id="split_type") }}
+      </div>
+      <div class="form-row" id="custom_split_group" style="display:none">
+        <div class="form-group">
+          <label class="form-label">{{ form.amount_a.label.text }}</label>
+          {{ form.amount_a(class="form-control", step="0.01") }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">{{ form.amount_b.label.text }}</label>
+          {{ form.amount_b(class="form-control", step="0.01") }}
+        </div>
+      </div>
+      {% for e in form.amount_b.errors %}<p class="form-error">{{ e }}</p>{% endfor %}
       <div class="form-group">
         <label class="form-label">{{ form.note.label.text }} <span style="color:var(--text-muted)">(opcional)</span></label>
         {{ form.note(class="form-control", placeholder="Breve descrição…", rows=2) }}
@@ -33,4 +54,11 @@
     </form>
   </div>
 </div>
+<script>
+  const sel = document.getElementById('split_type');
+  const grp = document.getElementById('custom_split_group');
+  function toggle() { grp.style.display = sel.value === 'custom' ? '' : 'none'; }
+  sel.addEventListener('change', toggle);
+  toggle();
+</script>
 {% endblock %}

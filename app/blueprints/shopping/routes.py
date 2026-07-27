@@ -4,10 +4,12 @@ from app.blueprints.shopping import shopping_bp
 from app.models import ShoppingItem
 from app.extensions import db
 from app.services.shopping_service import sync_shopping_list
+from app.utils import household_required
 
 
 @shopping_bp.route("/")
 @login_required
+@household_required
 def index():
     household_id = current_user.household_id
     items = ShoppingItem.query.filter_by(household_id=household_id).order_by(
@@ -35,6 +37,7 @@ def index():
 
 @shopping_bp.route("/generate", methods=["POST"])
 @login_required
+@household_required
 def generate():
     count = sync_shopping_list(current_user.household_id, days_ahead=7)
     flash(f"Lista de compras gerada — {count} produtos adicionados.", "success")
@@ -43,6 +46,7 @@ def generate():
 
 @shopping_bp.route("/add", methods=["POST"])
 @login_required
+@household_required
 def add_manual():
     name = request.form.get("name", "").strip()
     quantity = request.form.get("quantity", 1)
@@ -74,6 +78,7 @@ def add_manual():
 
 @shopping_bp.route("/<int:item_id>/toggle", methods=["POST"])
 @login_required
+@household_required
 def toggle(item_id):
     item = ShoppingItem.query.filter_by(
         id=item_id, household_id=current_user.household_id
@@ -85,6 +90,7 @@ def toggle(item_id):
 
 @shopping_bp.route("/clear-checked", methods=["POST"])
 @login_required
+@household_required
 def clear_checked():
     ShoppingItem.query.filter_by(
         household_id=current_user.household_id, checked=True
@@ -96,6 +102,7 @@ def clear_checked():
 
 @shopping_bp.route("/<int:item_id>/delete", methods=["POST"])
 @login_required
+@household_required
 def delete(item_id):
     item = ShoppingItem.query.filter_by(
         id=item_id, household_id=current_user.household_id

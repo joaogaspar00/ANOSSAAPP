@@ -16,7 +16,7 @@
       <span><strong>{{ total_count - checked_count }}</strong> em falta</span>
       <span style="color:var(--text-muted)">{{ checked_count }} verificados</span>
       {% if total_est > 0 %}
-        <span style="color:var(--accent);font-weight:600">~{{ "%.0f"|format(total_est) }} kr est.</span>
+        <span style="color:var(--accent);font-weight:600">~{{ "%.0f"|format(total_est) }} {{ current_user.household.currency_symbol() }} est.</span>
       {% endif %}
     </div>
     {% if checked_count > 0 %}
@@ -85,7 +85,7 @@
                   </span>
                 {% endif %}
                 {% if item.estimated_cost %}
-                  <span style="font-size:.75rem;color:var(--accent)">~{{ "%.0f"|format(item.estimated_cost) }} kr</span>
+                  <span style="font-size:.75rem;color:var(--accent)">~{{ "%.0f"|format(item.estimated_cost) }} {{ current_user.household.currency_symbol() }}</span>
                 {% endif %}
               </div>
             </div>

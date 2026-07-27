@@ -6,12 +6,14 @@ from app.blueprints.meals.forms import RecipeForm, MealPlanForm
 from app.models import Recipe, Ingredient, RecipeIngredient, MealPlan, MEAL_SLOTS
 from app.extensions import db
 from app.services.price_service import get_price_service
+from app.utils import household_required
 
 
 # ── Meal Plan ────────────────────────────────────────────────────────────────
 
 @meals_bp.route("/")
 @login_required
+@household_required
 def index():
     household_id = current_user.household_id
     today = date.today()
@@ -50,6 +52,7 @@ def index():
 
 @meals_bp.route("/plan/add", methods=["POST"])
 @login_required
+@household_required
 def add_plan():
     household_id = current_user.household_id
     form = MealPlanForm()
@@ -74,6 +77,7 @@ def add_plan():
 
 @meals_bp.route("/plan/<int:plan_id>/complete", methods=["POST"])
 @login_required
+@household_required
 def complete_plan(plan_id):
     mp = MealPlan.query.filter_by(id=plan_id, household_id=current_user.household_id).first_or_404()
     mp.completed = True
@@ -85,6 +89,7 @@ def complete_plan(plan_id):
 
 @meals_bp.route("/plan/<int:plan_id>/delete", methods=["POST"])
 @login_required
+@household_required
 def delete_plan(plan_id):
     mp = MealPlan.query.filter_by(id=plan_id, household_id=current_user.household_id).first_or_404()
     db.session.delete(mp)
@@ -97,6 +102,7 @@ def delete_plan(plan_id):
 
 @meals_bp.route("/recipes")
 @login_required
+@household_required
 def recipes():
     all_recipes = Recipe.query.filter_by(
         household_id=current_user.household_id
@@ -106,6 +112,7 @@ def recipes():
 
 @meals_bp.route("/recipes/add", methods=["GET", "POST"])
 @login_required
+@household_required
 def add_recipe():
     form = RecipeForm()
     if form.validate_on_submit():
@@ -130,6 +137,7 @@ def add_recipe():
 
 @meals_bp.route("/recipes/<int:recipe_id>")
 @login_required
+@household_required
 def view_recipe(recipe_id):
     recipe = Recipe.query.filter_by(
         id=recipe_id, household_id=current_user.household_id
@@ -139,6 +147,7 @@ def view_recipe(recipe_id):
 
 @meals_bp.route("/recipes/<int:recipe_id>/edit", methods=["GET", "POST"])
 @login_required
+@household_required
 def edit_recipe(recipe_id):
     recipe = Recipe.query.filter_by(
         id=recipe_id, household_id=current_user.household_id
@@ -163,6 +172,7 @@ def edit_recipe(recipe_id):
 
 @meals_bp.route("/recipes/<int:recipe_id>/delete", methods=["POST"])
 @login_required
+@household_required
 def delete_recipe(recipe_id):
     recipe = Recipe.query.filter_by(
         id=recipe_id, household_id=current_user.household_id
@@ -196,7 +206,7 @@ def _save_recipe_ingredients(recipe, req):
             ingredient = Ingredient(
                 name=name,
                 default_unit=unit or None,
-                price_dkk_per_unit=price,
+                price_per_unit=price,
                 category=None,
             )
             db.session.add(ingredient)
